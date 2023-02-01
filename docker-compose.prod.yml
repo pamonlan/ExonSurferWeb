@@ -1,0 +1,66 @@
+version: '3.7'
+
+services:
+  redis:
+    image: redis
+     
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    command: gunicorn mirWeb.wsgi:application --bind 0.0.0.0:8000 --timeout 300  --access-logfile /home/app/web/gunicorn-access.log --error-logfile /home/app/web/gunicorn-access.log 
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+      - media_volume:/home/app/web/Data
+    expose:
+      - 8000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
+  rq1:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    command: python3 manage.py rqworker default slow normal faster
+    links:
+      - redis
+    volumes:
+      - media_volume:/home/app/web/Data
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
+  rq2:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    command: python3 manage.py rqworker default slow normal faster
+    links:
+      - redis
+    volumes:
+      - media_volume:/home/app/web/Data
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.prod.db
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+      - media_volume:/home/app/web/Data
+    ports:
+      - 8889:80
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+  <div class="container">
+    <h1 class="display-3" align="center"><b>ExonSurfer</b></h1>
+    <p align="center">A Web-tool for Exon-specific Primer Design</p>
+  </div>
+</div>
+{% endblock header %}
+
+{% block body %}
+
+<div class="container">
+  <!-- About ExonSurfer -->
+  <div class="row gy-5">
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <div class="col-lg">
+      <h2>About ExonSurfer</h2>
+      <p align="left">ExonSurfer is a web-tool designed for the design of high specific transcript primers, using the Ensembl database and the blastn algorithm in order to identify and find the proper exon binding of the transcripts.</p>
+      <p align="left">The program simplifies and streamlines the primer design process, while also providing the user with a variety of options to customize their primer design to best suit their needs. Additionally, the use of Ensembl database and the blastn algorithm ensures high specificity and low non-specific binding of the primers, making ExonSurfer an essential tool for transcript-specific detection.</p>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Example row of columns -->
+  <div class="row gy-5">
+
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <div class="col-lg">
+      <h2>Design Primers</h2>
+      <p align="left">ExonSurfer is a python3 program, designed for the design of high specific transcript primers, using the Ensembl database and the blastn algorithm in order to identify and find the proper exon binding of the transcripts.</p>
+      <p align="left">The program offers fast and accurate primer design, with user specified parameters like primer size, GC content, etc, and a user-friendly web interface to setup search options and visualize results.</p>
+      <p><a class="btn btn-secondary" href="{% url 'select_gene'%}" role="button" data-bcup-haslogintext="no">Design</a></p>
+    </div>
+    <div class="col-lg">
+      <h2>Check Specificity</h2>
+      <p align="left">ExonSurfer ensures high specificity of the primers, with low non-specific binding, by using the Ensembl database and the blastn algorithm to check for specificity and self-complementarity.</p>
+      <p align="left">The program also allows the selection of any specific exon-exon junction, thus enabling highly accurate and efficient primer design for a wide range of applications.</p>
+      <p><a class="btn btn-secondary" href="{% url 'select_gene'% }" role="button" data-bcup-haslogintext="no">Check</a></p>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock body %}

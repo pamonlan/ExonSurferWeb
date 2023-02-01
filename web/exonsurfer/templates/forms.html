@@ -1,0 +1,39 @@
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static%}
+
+
+{% block css%}
+    <!-- Bootstrap core CSS -->
+    <link href= "{% static 'index/css/forms.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block body %}
+
+    <div class="container">
+      <div class="row" style="padding-top: 4%;">
+        <div class="col-lg-8 mx-auto">
+          <h2> <b>{{title}}</b> </h2>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+              
+              {{ form|crispy }}
+            </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Submit Analysis</button>
+          </form>
+          
+          
+
+        </div>
+      </div>
+    </div>
+ 
+{% endblock body %}
+
+{% block js %}
+<script src="{% static 'index/js/form.js'%}"></script>
+
+{% endblock js %}
