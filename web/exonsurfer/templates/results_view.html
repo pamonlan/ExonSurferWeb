@@ -47,13 +47,16 @@
 
           <table cellspacing="10" cellpadding="2" border="0">
             <tbody><tr>
-            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair 1 <a href="#"">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ forloop.counter }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}">(Click here for cDNA and amplicon sequence)</a>:</b></td>
             </tr>
             <tr>
               <td align="left"><b>Junction Information</b></td>
               <td align="left">{{pair.junction}}</td>
             </tr>
-
+            <tr>
+              <td align="left"><b>Pair Score</b></td>
+              <td align="left">{{pair.Score}}</td>
+            </tr>
             <tr>
               <td align="left"><b>Amplicon Size</b></td>
               <td align="left">{{pair.amplicon_size}}</td>
@@ -81,6 +84,13 @@
               <td align="center"> {{pair.reverse_tm}} </td>
               <td align="center">{{pair.reverse_gc}} </td>
             </tr>
+            {% if pair.other_transcripts%}
+            <tr style="background-color: #f44336;">
+              <!-- Indicate with red color-->
+              <td align="left"><b>Possible inespecificity</b></td>
+              <td align="left">{{pair.other_transcripts}}</td>
+            </tr>
+            {%endif%}
             </tbody></table>
               
         </div>

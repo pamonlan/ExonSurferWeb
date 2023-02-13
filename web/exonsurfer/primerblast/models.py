@@ -5,10 +5,9 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import os
 import pandas as pd
-
+import numpy as np
 # Create your models here.
 data_root = FileSystemStorage(location=settings.DATA_DIR)
-
 
 
 class PrimerConfig(models.Model):
@@ -39,11 +38,23 @@ class PrimerConfig(models.Model):
         Minimum size of the product
     primer_product_size_max: int
         Maximum size of the product
+    primer_product_opt_tm: float
+        Optimal melting temperature of the product
+    primer_product_min_tm: float
+        Minimum melting temperature of the product
+    primer_product_max_tm: float
+        Maximum melting temperature of the product
+    primer_salt_divalent: float
+        Concentration of divalent cations
+    primer_salt_monovalent: float
+        Concentration of monovalent cations
+    primer_dntp_conc: float
+        Concentration of dNTPs
+    Methods
+    -------
     """
 
-
-
-    def from_dict(dict):
+    def from_dict(self, dict):
         """
         Method to create a PrimerConfig object from a dictionary
         Parameters
@@ -55,7 +66,8 @@ class PrimerConfig(models.Model):
         PrimerConfig
             PrimerConfig object
         """
-        primer_config = PrimerConfig()
+        primer_config = self
+        print(dict)
         primer_config.primer_opt_size = dict["primer_opt_size"]
         primer_config.primer_min_size = dict["primer_min_size"]
         primer_config.primer_max_size = dict["primer_max_size"]
@@ -67,20 +79,36 @@ class PrimerConfig(models.Model):
         primer_config.primer_max_gc = dict["primer_max_gc"]
         primer_config.primer_product_size_min = dict["primer_product_size_min"]
         primer_config.primer_product_size_max = dict["primer_product_size_max"]
+        primer_config.primer_product_opt_tm = dict["primer_product_opt_tm"]
+        primer_config.primer_product_min_tm = dict["primer_product_min_tm"]
+        primer_config.primer_product_max_tm = dict["primer_product_max_tm"]
+        primer_config.primer_salt_divalent = dict["primer_salt_divalent"]
+        primer_config.primer_salt_monovalent = dict["primer_salt_monovalent"]
+        primer_config.primer_dntp_conc = dict["primer_dntp_conc"]
+
+        
         primer_config.save()
+
         return primer_config
 
-    primer_opt_size = models.IntegerField()
-    primer_min_size = models.IntegerField()
-    primer_max_size = models.IntegerField()
-    primer_opt_tm = models.FloatField()
-    primer_min_tm = models.FloatField()
-    primer_max_tm = models.FloatField()
-    primer_opt_gc = models.IntegerField()
-    primer_min_gc = models.IntegerField()
-    primer_max_gc = models.IntegerField()
-    primer_product_size_min = models.IntegerField()
-    primer_product_size_max = models.IntegerField()
+    primer_opt_size = models.IntegerField(default=20)
+    primer_min_size = models.IntegerField(default=17)
+    primer_max_size = models.IntegerField(default=35)
+    primer_opt_tm = models.FloatField(default=59)
+    primer_min_tm = models.FloatField(default=57.5)
+    primer_max_tm = models.FloatField(default=60.5)
+    primer_opt_gc = models.IntegerField(default=50)
+    primer_min_gc = models.IntegerField(default=20)
+    primer_max_gc = models.IntegerField(default=80)
+    primer_product_size_min = models.IntegerField(default=170)
+    primer_product_size_opt = models.IntegerField(default=200)
+    primer_product_size_max = models.IntegerField(default=250)
+    primer_product_opt_tm = models.FloatField(default=80)
+    primer_product_min_tm = models.FloatField(default=65)
+    primer_product_max_tm = models.FloatField(default=90)
+    primer_salt_divalent = models.FloatField(default=1.5)
+    primer_salt_monovalent = models.FloatField(default=50)
+    primer_dntp_conc = models.FloatField(default=0.6)
 
 
 
@@ -105,16 +133,6 @@ class Session(models.Model):
     """
     def __str__(self):
         return f"{self.session_id}: {self.species} {self.symbol} {self.transcript}"
-
-    def set_config(self, primer_config):
-        """
-        Method to set the primer configuration
-        Parameters
-        ----------
-        primer_config: PrimerConfig
-            PrimerConfig object
-        """
-        self.primer_config = primer_config
 
     def create_session(species, symbol, transcript):
         """
@@ -145,6 +163,74 @@ class Session(models.Model):
         """
         self.is_run = True
         self.save()
+
+    def set_design_config(self, primer_config):
+        """
+        Method to set the design configuration
+        """
+        self.primer_config = primer_config
+        self.save()
+
+    def get_design_config(self):
+        """
+        Method to get the design configuration
+        Returns
+        -------
+        dict
+            Dictionary with the design configuration
+        """
+
+        config = self.primer_config
+        print("[+] Getting design config")
+        print(config)
+        design_dict = {
+            'PRIMER_OPT_SIZE': config.primer_opt_size,
+            'PRIMER_MIN_SIZE': config.primer_min_size,
+            'PRIMER_MAX_SIZE': config.primer_max_size,
+            'PRIMER_OPT_TM': config.primer_opt_tm,
+            'PRIMER_MIN_TM': config.primer_min_tm,
+            'PRIMER_MAX_TM': config.primer_max_tm,
+            'PRIMER_OPT_GC_PERCENT': config.primer_opt_gc,
+            'PRIMER_MIN_GC': config.primer_min_gc,
+            'PRIMER_MAX_GC': config.primer_max_gc,
+            'PRIMER_PRODUCT_SIZE_RANGE': [[config.primer_product_size_min, config.primer_product_size_max]],
+            'PRIMER_PRODUCT_OPT_TM': config.primer_product_opt_tm,
+            'PRIMER_PRODUCT_MIN_TM': config.primer_product_min_tm,
+            'PRIMER_PRODUCT_MAX_TM': config.primer_product_max_tm,
+            'PRIMER_SALT_DIVALENT': config.primer_salt_divalent,
+            'PRIMER_SALT_MONOVALENT': config.primer_salt_monovalent,
+            'PRIMER_DNTP_CONC': config.primer_dntp_conc,
+            }
+        return design_dict
+
+    def get_primer_pair(self, primer_pair_id):
+        """
+        Method to get a primer pair, from the result primer file
+        Parameters
+        ----------
+        primer_pair_id: str
+            Primer pair id
+        Returns
+        -------
+        PrimerPair: dict
+            Primer pair dictionary
+        """
+        try:
+            print("[+] Getting session file")
+            primer_df = Result.objects.get(session=self).get_primer_file()
+            primer_df = round(primer_df, 2)
+            primer_df.index = primer_df["pair_num"]
+            print("[+] Getting primer pair, ", primer_pair_id)
+           
+            # Obtain the row with pair_num == primer_pair_id
+            
+            primer_pair = primer_df.loc[str(primer_pair_id), :].to_dict()            
+
+        except Exception as e:
+            print(e)
+            print("[!] Primer pair not found")
+            primer_pair = None
+        return primer_pair
 
     session_id = models.UUIDField(default = uuid.uuid4, editable = False, unique = True)
     species = models.CharField(max_length=100)
@@ -180,7 +266,9 @@ class Result(models.Model):
         self.PrimerFile.name = "primer_%s_%s.csv"%(self.session.symbol,self.session.transcript)
 
     def get_primer_file(self):
-        return pd.read_csv(self.PrimerFile.path)
+        df = pd.read_csv(self.PrimerFile.path)
+        df["other_transcripts"].fillna(False, inplace=True)
+        return df
 
     def create_result(session, df_blast, df_primers):
         """

@@ -1,6 +1,7 @@
 # Form from which the user can submit a query sequence to Primer-BLAST
 from django import forms
 from ensembl.models import Gene, Transcript
+from primerblast.models import PrimerConfig, Session, Result
 from ExonSurfer.ensembl import ensembl
 
 class SpeciesGeneForm(forms.Form):
@@ -17,10 +18,20 @@ class SpeciesGeneForm(forms.Form):
 
     species = forms.ChoiceField(label='Species', choices=SPECIES_CHOICES, initial=SPECIES_CHOICES[0][0])
     # The gene symbol of the gene
-    symbol = forms.CharField(label='Gene Symbol', max_length=100)
+    
+    HUMAN_CHOICES = Gene.objects.filter(species="Homo_sapiens", gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+    MOUSE_CHOICES = Gene.objects.filter(species="Mus_musculus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+    RAT_CHOICES = Gene.objects.filter(species="Rattus_norvegicus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+    #SYMBOL_CHOICES = human_symbol + mouse_symbol + rat_symbol
+    print("[+] Human Symbol")
+    print(RAT_CHOICES)
+    human_symbol = forms.ChoiceField(label='Gene Symbol', choices=HUMAN_CHOICES, required=True)
+    mouse_symbol = forms.ChoiceField(label='Gene Symbol', choices=MOUSE_CHOICES, required=False)
+    rat_symbol = forms.ChoiceField(label='Gene Symbol', choices=RAT_CHOICES, required=False)
+    #maskared_genomes = forms.BooleanField(label='Maskared Genomes', required=False)
 
 
-class PrimerBlastForm(forms.Form):
+class PrimerBlastForm(forms.ModelForm):
     """
     Form for submitting a query sequence to Primer-BLAST
     Attributes:
@@ -45,6 +56,10 @@ class PrimerBlastForm(forms.Form):
 
     """
         ### Data From DB###
+    class Meta:
+        model = PrimerConfig
+        exclude = ['id', ]
+
     def __init__(self, *args, **kwargs):
         self.symbol = kwargs.pop('symbol', None)
         self.species = kwargs.pop('species', None)
@@ -52,12 +67,14 @@ class PrimerBlastForm(forms.Form):
 
         ### Select Public DataSet ###
         try:
-            data = ensembl.create_ensembl_data(release = 108)
+            data = ensembl.create_ensembl_data(release = 108, species = self.species)
             gene_obj = ensembl.get_gene_by_symbol(self.symbol, data)
             print(gene_obj)
             all_transcripts = ensembl.get_transcript_from_gene(gene_obj)
             coding_transcripts = ensembl.get_coding_transcript(all_transcripts)
             lT = [x.id for x in coding_transcripts]
+            if len(lT) > 1:
+                lT = ["ALL",] + lT
             TRANSCRIPT_CHOICES = list(zip(lT,lT))
             #TRANSCRIPT_CHOICES = list(Transcript.objects.filter(gene_name=self.symbol).values_list("transcript_id","transcript_id"))
 
@@ -70,24 +87,8 @@ class PrimerBlastForm(forms.Form):
             transcript = forms.ChoiceField(label='Transcript', choices=TRANSCRIPT_CHOICES)
             self.fields['transcript'] = transcript
 
-    # The primer size
-    primer_opt_size = forms.IntegerField(label='Primer Optimal Size', min_value=17, max_value=35, initial=20)
-    primer_min_size = forms.IntegerField(label='Primer Minimum Size', min_value=17, max_value=35, initial=17)
-    primer_max_size = forms.IntegerField(label='Primer Maximum Size', min_value=17, max_value=35, initial=35)
 
-    # The primer melting temperature
-    primer_opt_tm = forms.FloatField(label='Primer Optimal Melting Temperature', min_value=57.5, max_value=60.5, initial=59)
-    primer_min_tm = forms.FloatField(label='Primer Minimum Melting Temperature', min_value=57.5, max_value=60.5, initial=57.5)
-    primer_max_tm = forms.FloatField(label='Primer Maximum Melting Temperature', min_value=57.5, max_value=60.5, initial=60.5)
-
-    # The primer GC content
-    primer_opt_gc = forms.FloatField(label='Primer Optimal GC Content', min_value=20, max_value=80, initial=50)
-    primer_min_gc = forms.FloatField(label='Primer Minimum GC Content', min_value=20, max_value=80, initial=20)
-    primer_max_gc = forms.FloatField(label='Primer Maximum GC Content', min_value=20, max_value=80, initial=80)
-
-    # The product size
-    primer_product_size_min = forms.IntegerField(label='Product Minimum Size', min_value=80, max_value=170, initial=80)
-    primer_product_size_max = forms.IntegerField(label='Product Maximum Size', min_value=80, max_value=170, initial=170)
+    
 
 
 

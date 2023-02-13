@@ -1,0 +1,3 @@
+pair_num,option,junction,junction_description,forward,reverse,amplicon_size,forward_tm,reverse_tm,forward_gc,reverse_gc,amplicon_tm,pair_penalty,indiv_als,other_transcripts,other_genes,pcod_trans,pcod_genes
+Pair3,1,ENSE00001063186-ENSE00003511773,unique to target,CAGACAACCTTTGCCTCCAC,TGTACCGGGTGGGAGATTAC,118,59.04554773286242,59.04554773286242,55.0,55.0,82.48488253829494,0.5339374359123212,0,ENST00000526844(retained_intron),,0,0
+Pair17,1,ENSE00003511773-ENSE00003578863,unique to target,TGCAGTCTTGTTGAGCTCCT,TGTACCGGGTGGGAGATTAC,89,59.238813295241584,59.238813295241584,50.0,50.0,81.06620038251508,0.7272029982914887,0,ENST00000526844(retained_intron),,0,0

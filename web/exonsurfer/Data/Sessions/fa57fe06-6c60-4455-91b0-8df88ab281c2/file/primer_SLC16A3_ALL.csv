@@ -1,0 +1,2 @@
+pair_num,option,junction,junction_description,forward,reverse,amplicon_size,forward_tm,reverse_tm,forward_gc,reverse_gc,amplicon_tm,pair_penalty,indiv_als,other_transcripts,other_genes,pcod_trans,pcod_genes
+Pair0,2,ENSE00000949451-ENSE00001330469,"does NOT detect: ENST00000578684, ENST00000582715, ENST00000583025",CGTGAACCGCTTTGGCTG,TGAAGTAGCGGTTCAGCATG,182,59.74773963996898,59.74773963996898,61.11111111111112,61.11111111111112,89.94297529299786,3.473380191929664,0,,,0,0

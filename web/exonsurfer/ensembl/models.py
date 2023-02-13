@@ -24,14 +24,12 @@ class Gene(models.Model):
 
     
     gene_name = models.CharField(max_length=100)
-    gene_version = models.CharField(max_length=100)
     gene_id = models.CharField(max_length=100)
     gene_biotype = models.CharField(max_length=100)
-    transcript_id = models.CharField(max_length=100)
     feature = models.CharField(max_length=100)
     start = models.IntegerField()
     end = models.IntegerField()
-    strand = models.IntegerField()
+    strand = models.CharField(max_length=10)
     source = models.CharField(max_length=100)
     species = models.CharField(max_length=100, default='homo_sapiens')
     
@@ -53,7 +51,6 @@ class Transcript(models.Model):
         return self.transcript_name
 
     transcript_name = models.CharField(max_length=100)
-    transcript_version = models.CharField(max_length=100)
     transcript_id = models.CharField(max_length=100)
     transcript_biotype = models.CharField(max_length=100)
     gene_id = models.CharField(max_length=100)

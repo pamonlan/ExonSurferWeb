@@ -110,7 +110,9 @@
                 </table>
               </div>
             </div>
-          
+
+   
+
             <div class="field-group">
               <div class="field-group-header">
                 <span class="field-group-name">Amplicon Parameters</span>
@@ -122,6 +124,7 @@
                     <tr>
                       <th>Parameter</th>
                       <th>Min</th>
+                      <th>Opt</th>
                       <th>Max</th>
                     </tr>
                   </thead>
@@ -129,7 +132,44 @@
                     <tr>
                       <td style="padding: 10px;">Product size</td>
                       <td style="padding: 10px;">{{ form.primer_product_size_min }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_opt }}</td>
                       <td style="padding: 10px;">{{ form.primer_product_size_max  }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Melting temperature</td>
+                      <td style="padding: 10px;">{{ form.primer_product_min_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_opt_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_max_tm }}</td>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">PCR Parameters</span>
+                <span class="arrow">&#9658;</span>
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Salt Divalent</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_divalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Salt Monovalent</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_monovalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">dNTP Concentration</td>
+                      <td style="padding: 10px;">{{ form.primer_dntp_conc }}</td>
                     </tr>
                   </tbody>
                 </table>

@@ -1,0 +1,3 @@
+pair_num,option,junction,junction_description,forward,reverse,amplicon_size,forward_tm,reverse_tm,forward_gc,reverse_gc,amplicon_tm,pair_penalty,indiv_als,other_transcripts,other_genes,pcod_trans,pcod_genes
+Pair0,2,ENSE00000654698-ENSE00000654697,targets all transcripts,CGGGAGATCTCGAACACCTC,TTGGACCTGAACATGACCCG,146,59.61748478075634,59.61748478075634,60.0,60.0,89.90466428893343,1.581321006508574,0,,,0,0
+Pair1,2,ENSE00000654698-ENSE00000654697,targets all transcripts,CGGGAGATCTCGAACACCTC,GAGCTTGGCTCGTGGAAGAA,102,59.61748478075634,59.61748478075634,60.0,60.0,88.30259606438335,1.9382553456067624,0,,,0,0
