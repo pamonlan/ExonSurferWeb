@@ -18,14 +18,22 @@ class SpeciesGeneForm(forms.Form):
 
     species = forms.ChoiceField(label='Species', choices=SPECIES_CHOICES, initial=SPECIES_CHOICES[0][0])
     # The gene symbol of the gene
-    
-    HUMAN_CHOICES = Gene.objects.filter(species="Homo_sapiens", gene_biotype = "protein_coding").values_list("gene_name","gene_name")
-    MOUSE_CHOICES = Gene.objects.filter(species="Mus_musculus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
-    RAT_CHOICES = Gene.objects.filter(species="Rattus_norvegicus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+    try:
+        HUMAN_CHOICES = Gene.objects.filter(species="homo_sapiens", gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+        MOUSE_CHOICES = Gene.objects.filter(species="mus_musculus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+        RAT_CHOICES = Gene.objects.filter(species="rattus_norvegicus",gene_biotype = "protein_coding").values_list("gene_name","gene_name")
+        
+        #Filter RAT_CHOICES with empty gene_name
+        RAT_CHOICES = [x for x in RAT_CHOICES if x[0] != '']
+        
+    except Exception as error:
+        print("[!] Error in SpeciesGeneForm")
+        print(error)
+        HUMAN_CHOICES = []
+        MOUSE_CHOICES = []
+        RAT_CHOICES = []
     #SYMBOL_CHOICES = human_symbol + mouse_symbol + rat_symbol
-    print("[+] Human Symbol")
-    print(RAT_CHOICES)
-    human_symbol = forms.ChoiceField(label='Gene Symbol', choices=HUMAN_CHOICES, required=True)
+    human_symbol = forms.ChoiceField(label='Gene Symbol', choices=HUMAN_CHOICES, required=False)
     mouse_symbol = forms.ChoiceField(label='Gene Symbol', choices=MOUSE_CHOICES, required=False)
     rat_symbol = forms.ChoiceField(label='Gene Symbol', choices=RAT_CHOICES, required=False)
     #maskared_genomes = forms.BooleanField(label='Maskared Genomes', required=False)
@@ -63,16 +71,13 @@ class PrimerBlastForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.symbol = kwargs.pop('symbol', None)
         self.species = kwargs.pop('species', None)
+        self.lT = kwargs.pop('lT', None)
         super(PrimerBlastForm, self).__init__(*args, **kwargs)
 
         ### Select Public DataSet ###
         try:
-            data = ensembl.create_ensembl_data(release = 108, species = self.species)
-            gene_obj = ensembl.get_gene_by_symbol(self.symbol, data)
-            print(gene_obj)
-            all_transcripts = ensembl.get_transcript_from_gene(gene_obj)
-            coding_transcripts = ensembl.get_coding_transcript(all_transcripts)
-            lT = [x.id for x in coding_transcripts]
+            lT = self.lT
+            print(lT)
             if len(lT) > 1:
                 lT = ["ALL",] + lT
             TRANSCRIPT_CHOICES = list(zip(lT,lT))

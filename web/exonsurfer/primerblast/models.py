@@ -90,22 +90,27 @@ class PrimerConfig(models.Model):
         primer_config.save()
 
         return primer_config
-
+    #Primer Size
     primer_opt_size = models.IntegerField(default=20)
     primer_min_size = models.IntegerField(default=17)
     primer_max_size = models.IntegerField(default=35)
+    #Primer Tm
     primer_opt_tm = models.FloatField(default=59)
     primer_min_tm = models.FloatField(default=57.5)
     primer_max_tm = models.FloatField(default=60.5)
+    #Primer GC
     primer_opt_gc = models.IntegerField(default=50)
     primer_min_gc = models.IntegerField(default=20)
     primer_max_gc = models.IntegerField(default=80)
-    primer_product_size_min = models.IntegerField(default=170)
+    #Product Size
+    primer_product_size_min = models.IntegerField(default=60)
     primer_product_size_opt = models.IntegerField(default=200)
     primer_product_size_max = models.IntegerField(default=250)
+    #Product Tm
     primer_product_opt_tm = models.FloatField(default=80)
     primer_product_min_tm = models.FloatField(default=65)
     primer_product_max_tm = models.FloatField(default=90)
+    #PCR Parameters
     primer_salt_divalent = models.FloatField(default=1.5)
     primer_salt_monovalent = models.FloatField(default=50)
     primer_dntp_conc = models.FloatField(default=0.6)
@@ -232,7 +237,31 @@ class Session(models.Model):
             primer_pair = None
         return primer_pair
 
+    def get_primer_pair_blast(self,primer_pair_id):
+        """
+        Method to get the primer pair blast
+        Returns
+        -------
+        PrimerPair: DF
+            Primer pair DF
+        
+        """
+        try:
+            print("[+] Getting session file")
+            blast_df = Result.objects.get(session=self).get_blast_file()
+            blast_df = round(blast_df, 2)
+            print("[+] Getting primer pair blast")
+            blast_df["pair_num"] = blast_df["query id"].apply(lambda x: x.split("_")[0])
+            primer_pair = blast_df.query(f"pair_num == '{primer_pair_id}'")
+
+        except Exception as e:
+            print(e)
+            print("[!] Primer pair not found")
+            primer_pair = None
+        return primer_pair
+
     session_id = models.UUIDField(default = uuid.uuid4, editable = False, unique = True)
+    created_at = models.DateTimeField(auto_now_add=True)
     species = models.CharField(max_length=100)
     symbol = models.CharField(max_length=100)
     transcript = models.CharField(max_length=100)
@@ -268,6 +297,10 @@ class Result(models.Model):
     def get_primer_file(self):
         df = pd.read_csv(self.PrimerFile.path)
         df["other_transcripts"].fillna(False, inplace=True)
+        return df
+
+    def get_blast_file(self):
+        df = pd.read_csv(self.BlastFile.path, index_col=0)
         return df
 
     def create_result(session, df_blast, df_primers):

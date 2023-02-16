@@ -42,6 +42,7 @@ class Transcript(models.Model):
         transcript_version: the version of the transcript
         transcript_id: the id of the transcript
         transcript_name: the name of the transcript
+        refseq_id: the RefSeq ID of the transcript
         transcript_biotype: the biotype of the transcript
         gene_id: the gene of the transcript
         gene_name: the gene name of the transcript
@@ -53,6 +54,7 @@ class Transcript(models.Model):
     transcript_name = models.CharField(max_length=100)
     transcript_id = models.CharField(max_length=100)
     transcript_biotype = models.CharField(max_length=100)
+    refseq_id = models.CharField(max_length=100, blank=True, null=True)
     gene_id = models.CharField(max_length=100)
     gene_name = models.CharField(max_length=100)
     species = models.CharField(max_length=100, default="homo_sapiens")

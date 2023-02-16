@@ -4,6 +4,7 @@
   border: 1px solid black;
   transition: height 0.3s ease;
   overflow: hidden;
+  width: 120%;
 }
 
 .field-group-header {
@@ -12,7 +13,7 @@
   align-items: center;
   cursor: pointer;
   padding: 10px;
-  background-color: #c58fff;
+  background-color: #e0f2fd;
 }
 
 .field-group-name {

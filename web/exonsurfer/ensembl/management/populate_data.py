@@ -49,7 +49,7 @@ def populate_gene_table(specie):
                     "gene_biotype", "gene_id", "gene_name", "feature"]
     df = get_table(table_name, col_names, conn_pyensembl)
     #Add the species column
-    df["species"] = specie
+    df["species"] = specie.lower()
     #Local_table_name
     table_name_local = "ensembl_gene"
     #Insert the data in the local database
@@ -87,7 +87,7 @@ def populate_transcript_table(specie):
     col_names = ["transcript_id", "transcript_name",
                     "transcript_biotype", "gene_id", "gene_name"]
     df = get_table(table_name, col_names, conn_pyensembl)
-    df["species"] = specie
+    df["species"] = specie.lower()
     #Local_table_name
     table_name_local = "ensembl_transcript"
     #Insert the data in the local database

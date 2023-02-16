@@ -59,13 +59,51 @@
 
                 <!-- Multiselect-->
                 <div id="public" >
-                  <p> Select transcript to design: </p>
-                  <select  style="width:350px;" id="transcript", name="transcript"> 
-                    {% for value,key in form.transcript.field.choices %}
-                        <option name="transcript" value="{{value}}">{{key}}</option>
-                    {%endfor%}
-                  </select>
-                  <p>
+                  <br><br>
+                  <span class="field-group-name">Select Transcript from Gene to Design Primers</span>
+                  <br><br>
+                  <table style="padding: 10px; text-align: center;">
+                    <thead>
+                      <tr>
+                        <th style="padding: 10px;">Transcript ID</th>
+                        <th style="padding: 10px;">Transcript Name</th>
+                        <th></th>
+                        <th style="padding: 10px;">Transcript Biotype</th>
+                        <th style="padding: 10px;">RefSeq ID</th>
+                      </tr>
+                    <tbody>
+                      {% for transcript in transcripts %}
+                        <tr>
+                          <td style="padding: 10px;">
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="transcript" value='{{transcript.transcript_id }}' id="flexRadioDefault1" checked>
+                              <label class="form-check-label" name="transcript" value='{{transcript.transcript_id }}' for="flexRadioDefault1">
+                                {{ transcript.transcript_id }}
+                              </label>
+                            </div>
+                          </td>
+
+                          <td style="padding: 10px;">{{transcript.transcript_name}}</td>
+                          <td style="padding: 10px;">{{transcript.transcript_version}}</td>
+                          <td style="padding: 10px;">{{transcript.transcript_biotype}}</td>
+                          <td style="padding: 10px;">{{transcript.refseq_id}}</td>
+                        </tr>
+                      {% endfor %}
+                      {% if transcripts.count > 1 %}
+                      <tr>
+                        <td style="padding: 10px;text-align: left;">
+                          <div class="form-check">
+                            <input class="form-check-input" type="radio" name="transcript" value='ALL' id="flexRadioDefault1" checked>
+                            <label class="form-check-label" name="transcript" value='ALL' for="flexRadioDefault1">
+                              ALL
+                            </label>
+                          </div>
+                        </td>
+                        </tr>
+                      {% endif %}
+  
+                    </tbody>
+                  </table>
                 </div>
 
               </div>
@@ -177,7 +215,7 @@
             </div>
           
 
-            <button type="submit" class="btn btn-primary btn-block" style="background-color: #6f42c1;" >Submit Analysis</button>
+            <button type="submit" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 120%" >Submit Analysis</button>
           </form>
           
           

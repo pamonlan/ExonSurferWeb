@@ -17,7 +17,7 @@
 
     <!-- Table with top 5 primer pair results  from top_primers context -->
     <div class="w-100" style="padding-top: 6%;"></div>
-    <h2>Top 5 Primer Pairs</h2>
+    <h2>Primer Pair Information</h2>
     <hr class="my-4">
       <div class="row">
         <div class = "col-xl">
@@ -48,7 +48,7 @@
             </tr>
             <tr>
               <td align="left"><b>Pair Score</b></td>
-              <td align="left">{{primer_pair.Score}}</td>
+              <td align="left">{{primer_pair.pair_score}}</td>
             </tr>
             <tr>
               <td align="left"><b>Amplicon Size</b></td>
@@ -100,7 +100,7 @@
     <div class="row">
       <div class = "col-xl">
         <div id="exon-view"></div>
-        <svg width="600" height="400"></svg>
+        {{plotly|safe}}
         
       </div>
     </div>

@@ -55,7 +55,7 @@
             </tr>
             <tr>
               <td align="left"><b>Pair Score</b></td>
-              <td align="left">{{pair.Score}}</td>
+              <td align="left">{{pair.pair_score}}</td>
             </tr>
             <tr>
               <td align="left"><b>Amplicon Size</b></td>
@@ -108,14 +108,21 @@
       <h2>Primer Results</h2>
       <hr class="my-4">
       {%if identifier%}
-      <table id="example" class="display" style="width:100%">
-        <thead>
+      <table id="example" class="table table-hover" style="width:100%">
+        <thead style="background-color: #355C8E"> 
           <tr>
           {% for c in  col%}
             <th>{{c}}</th>
           {% endfor %}
           </tr>
         </thead>
+        <tfoot>
+          <tr>
+            {% for c in  col%}
+            <th>{{c}}</th>
+          {% endfor %}
+          </tr>
+      </tfoot>
       </table>
       {%else%}
       <h2>No result has been achieved with the selected parameters.</h2>
@@ -142,25 +149,35 @@
   {%if identifier%}
 
     <script>
-
       $(document).ready(function() {
-          $('#example').removeAttr('width').DataTable( {
-        scrollX:        true,
-        scrollCollapse: true,
-        dom: 'B<"clear">lfrtip',
-        buttons: {
-            name: 'primary',
-            buttons: [ 'csv', 'excel', {
-                    text: 'TSV',
-                    extend: 'csvHtml5',
-                    fieldSeparator: '\t',
-                    extension: '.tsv'
-                }]
-              },
-            "ajax": '{% url "results_json" identifier=identifier %}'
-
+          // Setup - add a text input to each footer cell
+          $('#example tfoot th').each( function (i) {
+              var title = $('#example thead th').eq( $(this).index() ).text();
+              $(this).html( '<input type="text" placeholder="'+title+'" data-index="'+i+'" />' );
+          } );
+        
+          // DataTable
+          var table = $('#example').DataTable( {
+              scrollY:        true,
+              scrollX:        true,
+              scrollCollapse: true,
+              paging:         false,
+              fixedColumns:   true,
+              "ajax": '{% url "results_json" identifier=identifier %}',
+          } );
+      
+          // Filter event handler
+          $( table.table().container() ).on( 'keyup', 'tfoot input', function () {
+              table
+                  .column( $(this).data('index') )
+                  .search( this.value )
+                  .draw();
           } );
       } );
+
+              
+
+ 
     </script>
 {%endif%}
 

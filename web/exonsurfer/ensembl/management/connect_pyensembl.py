@@ -8,7 +8,7 @@ def build_specie_path_db(specie):
     #Build the path to the specie database
     species_db = {
         "Rattus_norvegicus": "/home/q053pm//.cache/pyensembl/mRatBN7.2/ensembl108/Rattus_norvegicus.mRatBN7.2.108.gtf.db",
-        "Homo_sapiens": "/home/q053pm//.cache/pyensembl/GRCh38/ensembl76/Homo_sapiens.GRCh38.76.gtf.db",
+        "Homo_sapiens": "/home/q053pm//.cache/pyensembl/GRCh38/ensembl108/Homo_sapiens.GRCh38.108.gtf.db",
         "Mus_musculus": "/home/q053pm/.cache/pyensembl/GRCm39/ensembl108/Mus_musculus.GRCm39.108.gtf.db"
     }
     return species_db[specie]

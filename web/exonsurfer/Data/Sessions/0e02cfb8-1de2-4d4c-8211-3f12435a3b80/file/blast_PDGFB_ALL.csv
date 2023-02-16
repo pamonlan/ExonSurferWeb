@@ -1,5 +1,0 @@
-,query id,subject id,identity,alignment length,q. start,q. end,s. start,s. end,evalue,strand,transcript_id,gene_symbol,filter1,filter2
-104,Pair2_3,ENST00000511726.1,100.0,15,6,20,134,148,1.5,plus,ENST00000511726.1,ALG1L2,True,True
-127,Pair2_3,ENST00000495096.5,94.737,19,2,20,1732,1750,1.5,plus,ENST00000495096.5,ARVCF,True,True
-129,Pair2_3,ENST00000263207.8,94.737,19,2,20,3237,3255,1.5,plus,ENST00000263207.8,ARVCF,True,True
-141,Pair3_5,ENST00000400943.3,94.737,19,2,20,984,1002,1.5,plus,ENST00000400943.3,,True,True

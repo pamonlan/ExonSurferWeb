@@ -1,2 +1,0 @@
-pair_num,option,junction,junction_description,forward,reverse,amplicon_size,forward_tm,reverse_tm,forward_gc,reverse_gc,amplicon_tm,pair_penalty,indiv_als,other_transcripts,other_genes,pcod_trans,pcod_genes
-Pair24,2,ENSE00001443493-ENSE00001069556,unique to target,GGCAACCCAGGTAACCCTTA,AAAGAAGGCATGCACAGCTC,250,59.30001907326744,59.30001907326744,55.0,55.0,88.36345880948137,0.4134564147921082,0,ENST00000659642(protein_coding),,1,0
