@@ -1,3 +1,0 @@
-pair_num,option,junction,junction_description,forward,reverse,amplicon_size,forward_tm,reverse_tm,forward_gc,reverse_gc,amplicon_tm,indiv_als,other_transcripts,other_genes,pcod_trans,pcod_genes,other_genes_rpred,other_transcripts_rpred,pair_score
-Pair16,1,ENSE00003813641-ENSE00003813949,unique to target,TGCCTCATTCTGTGAAAATTGC,CCTCTGCAGTTACCTTCTTCAT,61,58.08323902260821,58.08323902260821,40.90909090909091,40.90909090909091,76.09880307177644,1,,,0,0,0,0,0.0
-Pair20,1,ENSE00003813641-ENSE00003813949,unique to target,GCCTCATTCTGTGAAAATTGCT,CCTCTGCAGTTACCTTCTTCAT,60,57.81592108231865,57.81592108231865,40.90909090909091,40.90909090909091,76.22612547614804,1,,,0,0,0,0,100.0

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}        
+
+
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+  <!-- Table with query summary (Symbol, transcript, Species) one row for each parameter -->
+  <div class="row">
+    <div class="col-xl">
+      <h2>Query Summary</h2>
+      <hr class="my-4">
+      <table cellspacing="10" cellpadding="2" border="0">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2" bgcolor="#FFCC99"><b>Gene Descriptions:</b></td>
+           </tr>
+          <tr>
+            <th scope="row">Gene</th>
+            <td>{{symbol}}</td>
+          </tr>
+          <tr>
+            <th scope="row">Transcript</th>
+            <td>{{transcript}}</td>
+          </tr>
+          <tr>
+            <th scope="row">Species</th>
+            <td>{{species}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    <!-- Table with top 5 primer pair results  from top_primers context -->
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <h2>Top 5 Primer Pairs</h2>
+    <hr class="my-4">
+    {% for pair in top_primers  %}
+      <div class="row">
+        <div class = "col-xl">
+
+          <table cellspacing="10" cellpadding="2" border="0">
+            <tbody><tr>
+            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ forloop.counter }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+            </tr>
+            <tr>
+              <td align="left"><b>Junction Information</b></td>
+              <td align="left">{{pair.junction}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Pair Score</b></td>
+              <td align="left">{{pair.pair_score}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Amplicon Size</b></td>
+              <td align="left">{{pair.amplicon_size}}</td>
+            </tr>
+
+            <tr>
+              <td align="left"></td>
+              <td align="center"><b>Sequence </b><font size="2">(5' <font face="Symbol">-&gt;</font> 3')</font></td>
+              <td align="center"><b>Length</b></td>
+              <td align="center"><b>Tm</b></td>
+              <td align="center"><b>GC</b></td>
+            </tr>
+
+            <tr>
+              <td align="left">Forward Primer</td>
+              <td align="left"><font face="Courier">{{pair.forward}}</font></td>
+              <td align="center">{{ pair.forward|length }}</td>
+              <td align="center"> {{pair.forward_tm}} </td>
+              <td align="center">{{pair.forward_gc}} </td>
+            </tr>
+            <tr>
+              <td align="left">Reverse Primer</td>
+              <td align="left"><font face="Courier">{{pair.reverse}}</font></td>
+              <td align="center">{{ pair.reverse|length }}</td>
+              <td align="center"> {{pair.reverse_tm}} </td>
+              <td align="center">{{pair.reverse_gc}} </td>
+            </tr>
+            {% if pair.other_transcripts%}
+            <tr style="background-color: #f44336;">
+              <!-- Indicate with red color-->
+              <td align="left"><b>Possible inespecificity</b></td>
+              <td align="left">{{pair.other_transcripts}}</td>
+            </tr>
+            {%endif%}
+            </tbody></table>
+              
+        </div>
+      </div>
+      <hr class="my-4">
+
+    {% endfor%}
+    
+
+
+
+  <!-- Table with primer results -->
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <div class="col-xl">
+      <h2>Primer Results</h2>
+      <hr class="my-4">
+      {%if identifier%}
+      <table id="example" class="table table-hover" style="width:100%">
+        <thead style="background-color: #355C8E"> 
+          <tr>
+          {% for c in  col%}
+            <th>{{c}}</th>
+          {% endfor %}
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            {% for c in  col%}
+            <th>{{c}}</th>
+          {% endfor %}
+          </tr>
+      </tfoot>
+      </table>
+      {%else%}
+      <h2>No result has been achieved with the selected parameters.</h2>
+      {%endif%}
+    </div>
+
+
+  </div>
+  {% endblock body %}
+
+  {% block js %}
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.18/af-2.3.0/b-1.5.2/b-colvis-1.5.2/b-flash-1.5.2/b-html5-1.5.2/b-print-1.5.2/cr-1.5.0/fh-3.1.4/r-2.2.2/datatables.min.css"/>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.18/af-2.3.0/b-1.5.2/b-colvis-1.5.2/b-flash-1.5.2/b-html5-1.5.2/b-print-1.5.2/cr-1.5.0/fh-3.1.4/r-2.2.2/datatables.min.js"></script>
+  <!-- needed to use moment.js for our date sorting-->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/datetime-moment.js"></script>
+	<!--polyfills are needed for this extension for old browsers like IE -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.5.7/shim.min.js"></script>
+  
+  {%if identifier%}
+
+    <script>
+      $(document).ready(function() {
+          // Setup - add a text input to each footer cell
+          $('#example tfoot th').each( function (i) {
+              var title = $('#example thead th').eq( $(this).index() ).text();
+              $(this).html( '<input type="text" placeholder="'+title+'" data-index="'+i+'" />' );
+          } );
+        
+          // DataTable
+          var table = $('#example').DataTable( {
+              scrollY:        true,
+              scrollX:        true,
+              scrollCollapse: true,
+              paging:         false,
+              fixedColumns:   true,
+              "ajax": '{% url "results_json" identifier=identifier %}',
+          } );
+      
+          // Filter event handler
+          $( table.table().container() ).on( 'keyup', 'tfoot input', function () {
+              table
+                  .column( $(this).data('index') )
+                  .search( this.value )
+                  .draw();
+          } );
+      } );
+
+              
+
+ 
+    </script>
+{%endif%}
+
+{% endblock js %}

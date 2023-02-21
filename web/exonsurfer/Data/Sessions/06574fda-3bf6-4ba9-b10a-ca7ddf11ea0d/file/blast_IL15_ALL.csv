@@ -1,3 +1,0 @@
-,query id,subject id,identity,alignment length,q. start,q. end,s. start,s. end,evalue,strand,id,ensembl_id,gene,filter1,filter2
-6902,Pair21_5,XR_007086746,100.0,16,5,20,3868,3883,0.62,plus,XR_007086746,-,-,True,True
-6909,Pair21_5,XR_007065164,100.0,16,5,20,3868,3883,0.62,plus,XR_007065164,-,-,True,True

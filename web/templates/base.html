@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+{% load static%}
+{% load crispy_forms_tags %}
+
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://getbootstrap.com/docs/4.0/assets/img/favicons/favicon.ico">
+
+    <title>ExonSurfer</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/jumbotron/">
+
+    <!-- Bootstrap core CSS -->
+    <link href= "{% static 'index/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'index/css/jumbotron.css' %}" rel="stylesheet">
+    <title>ExonSurfer: A Web-tool for Exon-specific Primer Design</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    {% block css %}
+    {% endblock css %}
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #355C8E; border-radius: 25px; margin-top: 5px ">
+      <a class="navbar-brand" href="{% url 'index'%}" data-bcup-haslogintext="no"><b>ExonSurfer</b></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation" data-bcup-haslogintext="no">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <!-- <a class="nav-link" href="{% url 'index'%}" data-bcup-haslogintext="no">Home <span class="sr-only">(current)</span></a> -->
+          </li>
+
+        </ul>
+      </div>
+      <!--
+        <a class="navbar-brand mr-0 mr-md-2" href="/" aria-label="Bootstrap">
+          <img width="60" height="60" src='{% static "media/mui.png"%}' style="position:relative;">
+      </a>
+    -->
+    </nav>
+
+    <main role="main">
+    {% block header %}
+
+    {% endblock header %}
+
+    {% block body %}
+      
+    {% endblock body %}
+    
+
+    <hr>
+
+
+    </main>
+
+    <footer class="container">
+      <p>© Monfort-Lanzas, P. & Rusu, E. et al, Biochemical Immunotoxicology Group, Medical University of Innsbruck  2022</p>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{% static 'js/jquery-3.2.1.slim.min.js'%}" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="{% static 'index/js/popper.min.js'%}"></script>
+    <script src="{% static 'index/js/bootstrap.min.js'%}"></script>
+
+       <!-- Custom JavaScript for AutoFelect Chosen -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.jquery.min.js"></script>
+   <!-- Multiple Select Scripts-->
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.jquery.min.js"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.min.css">
+  <script type="text/javascript">
+  $(".chosen").chosen({width: "100%", max_shown_results: 50});
+  </script>
+
+    {% block js %}
+    {% endblock js %}
+
+</body></html>

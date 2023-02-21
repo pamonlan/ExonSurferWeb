@@ -1,0 +1,108 @@
+# pull official base image
+FROM ubuntu:20.04 as builder
+
+# set work directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    TZ=Europe/Kiev \
+    PYENSEMBL_CACHE_DIR=/home/app/web/Data
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# install dependencies
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    python3.6 python3-pip python3-dev \
+    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
+    ncbi-blast+ git && \
+    rm -rf /var/lib/apt/lists/*
+
+# install Python dependencies
+COPY requirements.txt .
+RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
+
+# copy project files
+COPY . .
+
+# build and install ExonSurfer.py
+RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+    cd ExonSurfer && \
+    python3 setup.py install --user && \
+    cd .. && rm -rf ExonSurfer
+
+###########
+# FINAL   #
+###########
+
+# final image
+FROM ubuntu:20.04
+
+# set environment variables
+ENV TZ=Europe/Kiev \
+    HOME=/home/app \
+    APP_HOME=/home/app/web \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYENSEMBL_CACHE_DIR=/home/app/web/Data
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# install system dependencies
+
+# Setup Python
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    python3.8 python3-pip python3.8-dev \
+    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
+    ncbi-blast+ git
+
+# create application directories and user
+RUN mkdir -p /home/app $APP_HOME/ -p $APP_HOME/staticfiles $APP_HOME/Data $APP_HOME/staticfiles/account && \
+    mkdir -p $HOME/.local/lib/python3.6/site-packages && \
+    useradd -u 1000 -U -d $HOME -s /bin/bash app && \
+    chown -R app:app $HOME
+
+# set work directory
+WORKDIR $APP_HOME
+
+# copy Python dependencies from builder image
+COPY --from=builder /usr/src/app/wheels /wheels
+COPY requirements.txt .
+RUN pip3 install --no-cache /wheels/*
+
+# build and install ExonSurfer.py
+RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+    cd ExonSurfer && \
+    python3 setup.py install --user && \
+    cd .. && rm -rf ExonSurfer
+    
+# copy entrypoint-prod.sh
+COPY ./scripts/docker/entrypoint.sh $APP_HOME
+
+# copy project
+COPY . $APP_HOME
+
+# set ownership and permissions
+RUN chown -R nobody:nogroup $APP_HOME && \
+    chown -R nobody:nogroup $HOME && \
+    chown -R nobody:nogroup  /home/app/.local && \
+    chmod +x $APP_HOME/entrypoint.sh && \
+    chmod ugo+rw $APP_HOME/Data
+
+RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log
+RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log
+RUN touch /home/app/web/gunicorn-access.log && chown nobody:nogroup /home/app/web/gunicorn-access.log
+
+# Add bin path
+# Add bin, /usr/bin and .local/bin to PATH
+ENV PATH="/home/app/.local/bin/:${PATH}"
+ENV PATH="/home/app/web/bin:${PATH}"
+ENV PATH="/usr/bin:${PATH}"
+
+RUN chmod +x "/home/app/web/entrypoint.sh"
+# switch to app user
+USER nobody
+
+# set entrypoint command
+ENTRYPOINT ["/home/app/web/entrypoint.sh"]

@@ -1,0 +1,108 @@
+{% extends 'base.html' %}        
+
+<!DOCTYPE html>
+{% block head %}
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    .exon {
+      fill: #1f77b4;
+    }
+  </style>
+{% endblock %}
+
+
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+
+    <!-- Table with top 5 primer pair results  from top_primers context -->
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <h2>Primer Pair Information</h2>
+    <hr class="my-4">
+      <div class="row">
+        <div class = "col-xl">
+
+          <table cellspacing="10" cellpadding="2" border="0">
+            <tbody><tr>
+            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair</b></td>
+            </tr>
+            <tr>
+              <td align="left"><b>Species</b></td>
+              <td align="left">{{species}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Design transcript</b></td>
+              <td align="left">{{transcript}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Design Gene</b></td>
+              <td align="left">{{symbol}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Design information</b></td>
+              <td align="left">{{primer_pair.junction_description}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Junction Information</b></td>
+              <td align="left">{{primer_pair.junction}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Pair Score</b></td>
+              <td align="left">{{primer_pair.pair_score}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Amplicon Size</b></td>
+              <td align="left">{{primer_pair.amplicon_size}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Amplicon TM</b></td>
+              <td align="left">{{primer_pair.amplicon_tm}}</td>
+            </tr>
+            <tr>
+              <td align="left"></td>
+              <td align="center"><b>Sequence </b><font size="2">(5' <font face="Symbol">-&gt;</font> 3')</font></td>
+              <td align="center"><b>Length</b></td>
+              <td align="center"><b>Tm</b></td>
+              <td align="center"><b>GC</b></td>
+            </tr>
+
+            <tr>
+              <td align="left">Forward Primer</td>
+              <td align="left"><font face="Courier">{{primer_pair.forward}}</font></td>
+              <td align="center">{{ primer_pair.forward|length }}</td>
+              <td align="center"> {{primer_pair.forward_tm}} </td>
+              <td align="center">{{primer_pair.forward_gc}} </td>
+            </tr>
+            <tr>
+              <td align="left">Reverse Primer</td>
+              <td align="left"><font face="Courier">{{primer_pair.reverse}}</font></td>
+              <td align="center">{{ primer_pair.reverse|length }}</td>
+              <td align="center"> {{primer_pair.reverse_tm}} </td>
+              <td align="center">{{primer_pair.reverse_gc}} </td>
+            </tr>
+            {% if primer_pair.other_transcripts%}
+            <tr style="background-color: #f44336;">
+              <!-- Indicate with red color-->
+              <td align="left"><b>Possible inespecificity</b></td>
+              <td align="left">{{primer_pair.other_transcripts}}</td>
+            </tr>
+            {%endif%}
+            </tbody></table>
+              
+        </div>
+      </div>
+  </div>
+
+  <!-- Exon view -->
+  <div class="container" style="padding-top: 3%">
+    <h2>Exon view</h2>
+    <hr class="my-4">
+    <div class="row">
+      <div class = "col-xl">
+        <div id="exon-view"></div>
+        {{plotly|safe}}
+        
+      </div>
+    </div>
+  {% endblock body %}
+
