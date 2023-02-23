@@ -99,10 +99,38 @@
     <hr class="my-4">
     <div class="row">
       <div class = "col-xl">
-        <div id="exon-view"></div>
-        {{plotly|safe}}
+        <br><br>
+        <span class="field-group-name">Select Transcript from Gene to Design Primers</span>
+        <br><br>
+        <div id="plotly-container"></div>
+        
+        <div class="text-center" id="plot-loading">
+          <div class="spinner-border" role="status" id="plot-loading">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+        
+        <br><br>
         
       </div>
     </div>
   {% endblock body %}
 
+{% block js%}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Show loading spinner
+    $('#plot-loading').show();
+    
+    // Make AJAX request to the plotly view
+    $.get('{% url "plotly" %}', function(data) {
+      // Hide loading spinner
+      // Add plot to container
+      $('#plotly-container').html(data);
+      $('#plot-loading').hide();
+      $('#plot-loading').css('display', 'none');
+    });
+  });
+</script>
+{% endblock js%}

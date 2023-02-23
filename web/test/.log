@@ -1,0 +1,80 @@
+2023-02-22 11:57:49,807 [25425] DEBUG    root:75: [JupyterRequire] Loading Jupyter Require extension.
+2023-02-22 11:57:49,807 [25425] DEBUG    root:93: [JupyterRequire] Initializing comms.
+2023-02-22 11:57:49,807 [25425] INFO     root:247: [JupyterRequire] Initializing comms.
+2023-02-22 11:57:49,808 [25425] DEBUG    root:195: [JupyterRequire] Configuration requested: {'paths': {}, 'shim': None}
+2023-02-22 11:57:49,809 [25425] INFO     root:271: [JupyterRequire] Comms have been successfully initialized.
+2023-02-22 11:57:49,809 [25425] DEBUG    root:97: [JupyterRequire] Registering comm targets.
+2023-02-22 11:57:50,320 [25425] DEBUG    root:75: [JupyterRequire] Loading Jupyter Require extension.
+2023-02-22 11:57:50,320 [25425] DEBUG    root:93: [JupyterRequire] Initializing comms.
+2023-02-22 11:57:50,320 [25425] INFO     root:247: [JupyterRequire] Initializing comms.
+2023-02-22 11:57:50,324 [25425] DEBUG    root:195: [JupyterRequire] Configuration requested: {'paths': {}, 'shim': None}
+2023-02-22 11:57:50,325 [25425] INFO     root:271: [JupyterRequire] Comms have been successfully initialized.
+2023-02-22 11:57:50,325 [25425] DEBUG    root:97: [JupyterRequire] Registering comm targets.
+2023-02-22 11:58:54,420 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/2and3/builtins.pyi
+2023-02-22 11:58:54,439 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/sys.pyi
+2023-02-22 11:59:13,420 [25425] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 11:59:13,421 [25425] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 11:59:13,421 [25425] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 11:59:13,422 [25425] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 11:59:13,422 [25425] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 11:59:13,452 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /usr/lib/python3.8/typing.py
+2023-02-22 11:59:13,457 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/typing.pyi
+2023-02-22 11:59:22,476 [25425] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 11:59:22,476 [25425] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 11:59:22,477 [25425] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 11:59:22,477 [25425] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 11:59:22,477 [25425] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:00:53,084 [25425] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 12:00:53,084 [25425] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 12:00:53,084 [25425] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 12:00:53,085 [25425] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 12:00:53,085 [25425] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:00:58,014 [25425] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 12:00:58,015 [25425] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 12:00:58,015 [25425] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 12:00:58,016 [25425] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 12:00:58,016 [25425] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:00:58,150 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /usr/lib/python3.8/types.py
+2023-02-22 12:00:58,153 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/types.pyi
+2023-02-22 12:00:58,911 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /usr/lib/python3.8/abc.py
+2023-02-22 12:00:58,912 [25425] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/abc.pyi
+2023-02-22 12:04:14,525 [25425] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 12:04:14,525 [25425] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 2
+2023-02-22 12:04:14,525 [25425] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:2]
+2023-02-22 12:04:14,526 [25425] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 2 (to 1 in part parser)
+2023-02-22 12:04:14,526 [25425] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:05:06,865 [26752] DEBUG    root:75: [JupyterRequire] Loading Jupyter Require extension.
+2023-02-22 12:05:06,865 [26752] DEBUG    root:93: [JupyterRequire] Initializing comms.
+2023-02-22 12:05:06,865 [26752] INFO     root:247: [JupyterRequire] Initializing comms.
+2023-02-22 12:05:06,866 [26752] DEBUG    root:195: [JupyterRequire] Configuration requested: {'paths': {}, 'shim': None}
+2023-02-22 12:05:06,866 [26752] INFO     root:271: [JupyterRequire] Comms have been successfully initialized.
+2023-02-22 12:05:06,867 [26752] DEBUG    root:97: [JupyterRequire] Registering comm targets.
+2023-02-22 12:05:46,151 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/2and3/builtins.pyi
+2023-02-22 12:05:46,152 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/django/__init__.py
+2023-02-22 12:05:46,153 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/django-stubs/django-stubs/__init__.pyi
+2023-02-22 12:05:46,158 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/django/db/__init__.py
+2023-02-22 12:05:46,159 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/django-stubs/django-stubs/db/__init__.pyi
+2023-02-22 12:05:46,203 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/django/db/models/__init__.py
+2023-02-22 12:05:46,203 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/django-stubs/django-stubs/db/models/__init__.pyi
+2023-02-22 12:05:46,215 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/django/db/models/base.py
+2023-02-22 12:05:46,246 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/sys.pyi
+2023-02-22 12:05:46,267 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /usr/lib/python3.8/typing.py
+2023-02-22 12:05:46,271 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/typing.pyi
+2023-02-22 12:05:46,302 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /usr/lib/python3.8/types.py
+2023-02-22 12:05:46,304 [26752] DEBUG    parso.cache:166: [JupyterRequire] pickle loaded: /home/q053pm/.local/lib/python3.8/site-packages/jedi/third_party/typeshed/stdlib/3/types.pyi
+2023-02-22 12:05:47,751 [26752] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 12:05:47,752 [26752] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 12:05:47,752 [26752] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 12:05:47,753 [26752] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 12:05:47,753 [26752] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:05:47,943 [26752] DEBUG    parso.python.diff:282: [JupyterRequire] diff parser start
+2023-02-22 12:05:47,944 [26752] DEBUG    parso.python.diff:293: [JupyterRequire] line_lengths old: 1; new: 1
+2023-02-22 12:05:47,944 [26752] DEBUG    parso.python.diff:296: [JupyterRequire] -> code[replace] old[1:1] new[1:1]
+2023-02-22 12:05:47,945 [26752] DEBUG    parso.python.diff:421: [JupyterRequire] parse_part from 1 to 1 (to 0 in part parser)
+2023-02-22 12:05:47,945 [26752] DEBUG    parso.python.diff:339: [JupyterRequire] diff parser end
+2023-02-22 12:08:25,721 [26944] DEBUG    root:75: [JupyterRequire] Loading Jupyter Require extension.
+2023-02-22 12:08:25,721 [26944] DEBUG    root:93: [JupyterRequire] Initializing comms.
+2023-02-22 12:08:25,721 [26944] INFO     root:247: [JupyterRequire] Initializing comms.
+2023-02-22 12:08:25,722 [26944] DEBUG    root:195: [JupyterRequire] Configuration requested: {'paths': {}, 'shim': None}
+2023-02-22 12:08:25,722 [26944] INFO     root:271: [JupyterRequire] Comms have been successfully initialized.
+2023-02-22 12:08:25,722 [26944] DEBUG    root:97: [JupyterRequire] Registering comm targets.

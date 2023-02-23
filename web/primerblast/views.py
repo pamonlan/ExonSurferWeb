@@ -14,6 +14,10 @@ from .management.transcript_info import get_exon_transcript_information
 from .management.visualization import plot_primerpair_aligment
 
 
+### Sharing Parameters
+# This parameters are shared between the views
+#
+#lCol = ["pair_num"	option	junction	junction_description	forward	reverse	amplicon_size	forward_tm	reverse_tm	forward_gc	reverse_gc	amplicon_tm	other_transcripts_rpred	other_genes_rpred	indiv_als	other_transcripts	other_genes	pcod_trans	pcod_genes	other_genes_rpred_count	other_transcripts_rpred_count	pair_score
 
 ## Landing page view
 ## This view is the first one to be loaded
@@ -113,6 +117,10 @@ class PrimerBlastFormView(CreateView):
             context["symbol"] = symbol
             context["transcripts"] = lT
 
+            ## Add symbol and species to the request.session
+            request.session["species"] = species
+            request.session["symbol"] = symbol
+
         except Exception as error:
             print("[!] Error obtaining the session: ", error, "")
             raise Http404('Session not found...!')
@@ -144,11 +152,20 @@ class PrimerBlastFormView(CreateView):
                 transcript = dForm["transcript"]
                 #Create Session with Species, Gene and Transcript
                 primer_config = PrimerConfig().from_dict(dForm)
-                session = Session.create_session(species, symbol, transcript)
-                session.set_design_config(primer_config)
-                print(primer_config.primer_opt_size)
-                
-                print(session)
+                # Get all session fo the gene and species, and check if the PrimerConfig is the same
+                # If it is the same, we redirect to the next step
+                # If it is not the same, we create a new session
+                lSession = Session.objects.filter(symbol=symbol, species=species,transcript= transcript)
+                #Check the primer config 
+                lSession = [s for s in lSession if s.primer_config == primer_config]
+
+                if len(lSession) > 0:
+                    print("[+] Session already exists", flush=True)
+                    return redirect('runprimerblast', session_slug=lSession[0].session_id)
+                else:
+                    print("[+] Creating new session", flush=True)
+                    session = Session.create_session(species, symbol, transcript)
+                    session.set_design_config(primer_config)                
 
             except Exception as error:
                 print("[!] Error creating session")
@@ -289,10 +306,12 @@ class PrimerPairView(CreateView):
                 print(primer_pair_blast)
                 context["primer_pair"] = primer_pair
 
-                #Get transcript, exon dictionary
-                dT,dE = get_exon_transcript_information(symbol=session.symbol,species=session.species, transcript=session.transcript)
-                plotly = plot_primerpair_aligment(transcripts=dT, exons=dE, primers=[])
-                context["plotly"] = plotly
+                #Add symbol, species, primers and transcript to the request.session
+                request.session["symbol"] = session.symbol
+                request.session["species"] = session.species
+                request.session["transcript"] = session.transcript
+                #request.session["primer_pair"] = pair
+
         except Exception as error:
             print(error)
             context = {}
@@ -303,6 +322,37 @@ class PrimerPairView(CreateView):
 
 
 
+## Transcript Exon View
+## Show the transcript and exon information
+
+
+
+def ExonTranscriptView(request):
+    try:
+        # Obtain the symbol, and species from the rqeuest.session
+        symbol = request.session["symbol"]
+        species = request.session["species"]
+        #Obtain the transcript from the request, if not, set to ALL
+        if "transcript" in request.session:
+            transcript = request.session["transcript"]
+        else:
+            transcript = "ALL"
+        #Obtain the primer_pair from the request, if not, set to []
+        if "primer_pair" in request.session:
+            primer_pair = request.session["primer_pair"]
+        else:
+            primer_pair = []
+
+        #Obtain symbol, transcript and species from the session
+        dT,dE, contig = get_exon_transcript_information(symbol=symbol,species=species, transcript=transcript)
+        html = plot_primerpair_aligment(transcripts=dT, exons=dE, primers=primer_pair, contig=contig)
+    except Exception as error:
+        print(error)
+        context = {}
+
+        raise Http404('Session not found...!')
+
+    return HttpResponse(html)
 
     ############
     ### JSON ###

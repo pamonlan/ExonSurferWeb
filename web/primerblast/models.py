@@ -53,7 +53,26 @@ class PrimerConfig(models.Model):
     Methods
     -------
     """
-
+    def __eq__(self, other):
+        """
+        Method to compare two PrimerConfig objects
+        Parameters
+        ----------
+        other: PrimerConfig
+            PrimerConfig object to compare
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise
+        """
+        b=True
+        for attr in self.__dict__:
+            if attr.startswith("primer_"):
+                if getattr(self, attr) != getattr(other, attr):
+                    print(attr, getattr(self, attr), getattr(other, attr))
+                    b=False
+        return b
+                                                        
     def from_dict(self, dict):
         """
         Method to create a PrimerConfig object from a dictionary

@@ -73,4 +73,4 @@ def get_exon_transcript_information(species = None, symbol=None,release=108, tra
         dT = {transcript: dT[transcript]}
 
 
-    return dT,dE
+    return dT,dE, gene_obj.contig

@@ -1,13 +1,14 @@
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.offline as opy
+import plotly.io as pio
 
 config = {
     'toImageButtonOptions': {
         'format': 'svg', # one of png, svg, jpeg, webp
     }}
 
-def plot_primerpair_aligment(transcripts, exons, primers):
+def plot_primerpair_aligment(transcripts, exons, primers, contig):
     """
     Function that take the transcripts, exons and primers and return a plotly figure
     Args:
@@ -17,9 +18,13 @@ def plot_primerpair_aligment(transcripts, exons, primers):
     """
 
     # define colors for transcripts
-    lCol = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628',
-     '#f781bf', '#999999', '#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02',
-      '#a6761d', '#666666', '#b3e2cd', '#fdb462']
+    lCol =  ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', \
+     '#999999', '#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666', \
+     '#b3e2cd', '#fdb462', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd', '#ccebc5', \
+     '#ffed6f', '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', \
+     '#bc80bd', '#ccebc5', '#ffed6f', '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', \
+     '#fccde5', '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f', '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3']
+
 
     colors = dict(zip(transcripts.keys(),lCol))
 
@@ -96,7 +101,7 @@ def plot_primerpair_aligment(transcripts, exons, primers):
     # set layout properties
     fig.update_layout(
         #title='Exon Plot',
-        xaxis_title='Position',
+        xaxis_title=f"Chr{contig}",
         #yaxis_title='Transcript',
         showlegend=False,
         #height=500,
@@ -109,6 +114,5 @@ def plot_primerpair_aligment(transcripts, exons, primers):
                                 ticktext=["<b> %s </b>"%x for x in list(transcripts.keys())],
                                 range=[-0.6, len(transcripts)-0.4]))
 
-    div = opy.plot(fig, auto_open=False, config = config, output_type='div')
-
-    return div
+    html = pio.to_html(fig, full_html=False)
+    return html

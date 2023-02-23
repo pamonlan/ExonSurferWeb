@@ -15,7 +15,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install --no-install-recommends -y \
     python3.6 python3-pip python3-dev \
     build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
-    ncbi-blast+ git && \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
 # install Python dependencies
@@ -26,10 +26,10 @@ RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requi
 COPY . .
 
 # build and install ExonSurfer.py
-RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
-    cd ExonSurfer && \
-    python3 setup.py install --user && \
-    cd .. && rm -rf ExonSurfer
+#RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+#    cd ExonSurfer && \
+#    python3 setup.py install --user && \
+#    cd .. && rm -rf ExonSurfer
 
 ###########
 # FINAL   #
@@ -44,7 +44,8 @@ ENV TZ=Europe/Kiev \
     APP_HOME=/home/app/web \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYENSEMBL_CACHE_DIR=/home/app/web/Data
+    PYENSEMBL_CACHE_DIR=/home/app/web/Data \
+    EXONSURFER_CACHE_DIR=/home/app/web/Data
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -55,7 +56,7 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y \
     python3.8 python3-pip python3.8-dev \
     build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
-    ncbi-blast+ git
+     git
 
 # create application directories and user
 RUN mkdir -p /home/app $APP_HOME/ -p $APP_HOME/staticfiles $APP_HOME/Data $APP_HOME/staticfiles/account && \
@@ -72,11 +73,14 @@ COPY requirements.txt .
 RUN pip3 install --no-cache /wheels/*
 
 # build and install ExonSurfer.py
-RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
-    cd ExonSurfer && \
-    python3 setup.py install --user && \
-    cd .. && rm -rf ExonSurfer
-    
+#RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+#    cd ExonSurfer && \
+#    python3 setup.py install --user && \
+#    cd .. && rm -rf ExonSurfer
+
+COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
+RUN echo $(ls $APP_HOME/ExonSurfer)
+RUN cd $APP_HOME/ExonSurfer/ && python3 ./setup.py install --user
 # copy entrypoint-prod.sh
 COPY ./scripts/docker/entrypoint.sh $APP_HOME
 
@@ -99,6 +103,10 @@ RUN touch /home/app/web/gunicorn-access.log && chown nobody:nogroup /home/app/we
 ENV PATH="/home/app/.local/bin/:${PATH}"
 ENV PATH="/home/app/web/bin:${PATH}"
 ENV PATH="/usr/bin:${PATH}"
+
+#Copy local bin/blastn to /home/app/.local/bin/
+COPY ./bin/blastn /home/app/.local/bin/
+RUN chmod +x /home/app/.local/bin/blastn
 
 RUN chmod +x "/home/app/web/entrypoint.sh"
 # switch to app user
