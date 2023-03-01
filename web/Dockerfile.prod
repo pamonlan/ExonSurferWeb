@@ -26,10 +26,10 @@ RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requi
 COPY . .
 
 # build and install ExonSurfer.py
-#RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
-#    cd ExonSurfer && \
-#    python3 setup.py install --user && \
-#    cd .. && rm -rf ExonSurfer
+RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+    cd ExonSurfer && \
+    python3 setup.py install --user && \
+    cd .. && rm -rf ExonSurfer
 
 ###########
 # FINAL   #
@@ -73,14 +73,14 @@ COPY requirements.txt .
 RUN pip3 install --no-cache /wheels/*
 
 # build and install ExonSurfer.py
-#RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
-#    cd ExonSurfer && \
-#    python3 setup.py install --user && \
-#    cd .. && rm -rf ExonSurfer
+RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+    cd ExonSurfer && \
+    python3 setup.py install --user && \
+    cd .. && rm -rf ExonSurfer
 
-COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
-RUN echo $(ls $APP_HOME/ExonSurfer)
-RUN cd $APP_HOME/ExonSurfer/ && python3 ./setup.py install --user
+#COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
+#RUN echo $(ls $APP_HOME/ExonSurfer)
+#RUN cd $APP_HOME/ExonSurfer/ && python3 ./setup.py install --user
 # copy entrypoint-prod.sh
 COPY ./scripts/docker/entrypoint.sh $APP_HOME
 

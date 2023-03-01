@@ -1,0 +1,39 @@
+
+
+.ex1 {color: #7b3294; display: inline;}
+
+
+.ex1H {color: #7b3294; background-color: #c2a5cf; display: inline;}
+
+
+.ex2 {color: #008837; display: inline;}
+
+.ex2H {color: #008837; background-color: #a6dba0; display: inline;}
+
+
+.divS { width: 30em; max-width: 100%; margin-bottom: 0in; line-height: 100%}
+
+.two p:nth-child(1) { float:left; }
+
+.two p:nth-child(2) { float:right; }
+
+.header {font-family:"Liberation Sans", sans-serif; size: 14pt; }
+
+
+.mismatch {background-color: #f34040; display:inline;}
+.ex {color: #626161; display: inline;}
+.exH {color: #626161; background-color: #aee964; display: inline;}
+
+
+
+#cdna-container {
+    text-align: justify;
+    max-width: 100%;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+    word-wrap: break-word;
+    word-break: break-all;
+}
+

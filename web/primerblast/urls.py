@@ -16,5 +16,6 @@ urlpatterns = [
     path('primerblast/primer_view/<slug:session_slug>/<str:pair>/', views.PrimerPairView.as_view(), name="primer_pair_view"),
     path('json_list/<slug:identifier>/', views.ListJson, name = "results_json"),
     path('plotly_ajax/', views.ExonTranscriptView, name = "plotly"),
+    path('cdna_html/<slug:session_slug>/<str:pair>/', views.cDNATranscriptView, name="cdna_view"),
 
 ]

@@ -1,13 +1,12 @@
 {% extends 'base.html' %}        
-
+{% load static %}
 <!DOCTYPE html>
-{% block head %}
+
+{% block css %}
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <style>
-    .exon {
-      fill: #1f77b4;
-    }
-  </style>
+  <link href= "{% static 'index/css/cdna.css' %}" rel="stylesheet">
+
+
 {% endblock %}
 
 
@@ -23,8 +22,9 @@
         <div class = "col-xl">
 
           <table cellspacing="10" cellpadding="2" border="0">
-            <tbody><tr>
-            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair</b></td>
+            <tbody>
+            <tr>
+              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair</b></td>
             </tr>
             <tr>
               <td align="left"><b>Species</b></td>
@@ -81,16 +81,40 @@
               <td align="center">{{primer_pair.reverse_gc}} </td>
             </tr>
             {% if primer_pair.other_transcripts%}
-            <tr style="background-color: #f44336;">
-              <!-- Indicate with red color-->
-              <td align="left"><b>Possible inespecificity</b></td>
-              <td align="left">{{primer_pair.other_transcripts}}</td>
+            <tr class="table-warning"></trclass>
+              <td colspan="5" bgcolor="#CCCCCC">
+                Warning possible inespecificities. Check <a href="#" class="alert-link">off-target here</a>. Give it a click if you like.
+              </td>
             </tr>
             {%endif%}
             </tbody></table>
               
         </div>
       </div>
+  </div>
+  <!-- Exon view -->
+  <div class="container" style="padding-top: 3%">
+    <h2>cDNA view</h2>
+    <hr class="my-4">
+    <div class="row">
+      <div class = "col-xl">
+        <div id="cdna-container"></div>
+                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+              <div style="background-color: white; width: 20px; height: 20px; margin-right: 10px;"></div>
+              <p>Exon</p>
+              <div style="background-color: yellow; width: 20px; height: 20px; margin-right: 10px;"></div>
+              <p>Ex1H</p>
+              <div style="background-color: green; width: 20px; height: 20px; margin-right: 10px;"></div>
+              <p>Ex2H</p>
+            </div>
+        <div class="text-center" id="cdna-loading">
+
+          <div class="spinner-border" role="status" id="cdna-loading">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>        
+      </div>
+    </div>
   </div>
 
   <!-- Exon view -->
@@ -99,21 +123,16 @@
     <hr class="my-4">
     <div class="row">
       <div class = "col-xl">
-        <br><br>
-        <span class="field-group-name">Select Transcript from Gene to Design Primers</span>
-        <br><br>
         <div id="plotly-container"></div>
-        
         <div class="text-center" id="plot-loading">
           <div class="spinner-border" role="status" id="plot-loading">
             <span class="sr-only">Loading...</span>
           </div>
-        </div>
-        
-        <br><br>
-        
+        </div>        
       </div>
     </div>
+  </div>
+  
   {% endblock body %}
 
 {% block js%}
@@ -122,7 +141,8 @@
   $(document).ready(function() {
     // Show loading spinner
     $('#plot-loading').show();
-    
+    $('#cdna-loading').show();
+
     // Make AJAX request to the plotly view
     $.get('{% url "plotly" %}', function(data) {
       // Hide loading spinner
@@ -130,6 +150,15 @@
       $('#plotly-container').html(data);
       $('#plot-loading').hide();
       $('#plot-loading').css('display', 'none');
+    });
+
+    // Make AJAX request to the plotly view
+    $.get('{% url "cdna_view" session_slug=identifier pair=pair%}', function(data) {
+      // Hide loading spinner
+      // Add plot to container
+      $('#cdna-container').html(data);
+      $('#cdna-loading').hide();
+      $('#cdna-loading').css('display', 'none');
     });
   });
 </script>

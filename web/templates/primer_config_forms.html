@@ -85,8 +85,8 @@
                         <tr>
                           <td style="padding: 10px;">
                             <div class="form-check">
-                              <input class="form-check-input" type="radio" name="transcript" value='{{transcript.transcript_id }}' id="flexRadioDefault1" checked>
-                              <label class="form-check-label" name="transcript" value='{{transcript.transcript_id }}' for="flexRadioDefault1">
+                              <input class="form-check-input" type="checkbox" name="transcript" value='{{transcript.transcript_id }}' id="flexCheckDefault">
+                              <label class="form-check-label" name="transcript" value='{{transcript.transcript_id }}' for="flexCheckDefault">
                                 {{ transcript.transcript_id }}
                               </label>
                             </div>
@@ -102,8 +102,8 @@
                       <tr>
                         <td style="padding: 10px;text-align: left;">
                           <div class="form-check">
-                            <input class="form-check-input" type="radio" name="transcript" value='ALL' id="flexRadioDefault1" checked>
-                            <label class="form-check-label" name="transcript" value='ALL' for="flexRadioDefault1">
+                            <input class="form-check-input" type="checkbox" name="transcript" value='ALL' id="flexRadioDefault1" >
+                            <label class="form-check-label" name="transcript" value='ALL' for="flexCheckDefault">
                               ALL
                             </label>
                           </div>
@@ -136,19 +136,19 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td style="padding: 10px;">GC content</td>
+                      <td style="padding: 10px;">GC content (%)</td>
                       <td style="padding: 10px;">{{ form.primer_min_gc }}</td>
                       <td style="padding: 10px;">{{ form.primer_opt_gc  }}</td>
                       <td style="padding: 10px;">{{ form.primer_max_gc  }}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px;">Melting temperature</td>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
                       <td style="padding: 10px;">{{ form.primer_min_tm }}</td>
                       <td style="padding: 10px;">{{ form.primer_opt_tm }}</td>
                       <td style="padding: 10px;">{{ form.primer_max_tm }}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px;">Length</td>
+                      <td style="padding: 10px;">Length (base pairs)</td>
                       <td style="padding: 10px;">{{ form.primer_min_size}}</td>
                       <td style="padding: 10px;">{{ form.primer_opt_size }}</td>
                       <td style="padding: 10px;">{{ form.primer_max_size }}</td>
@@ -177,13 +177,13 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td style="padding: 10px;">Product size</td>
+                      <td style="padding: 10px;">Product size (base pairs)</td>
                       <td style="padding: 10px;">{{ form.primer_product_size_min }}</td>
                       <td style="padding: 10px;">{{ form.primer_product_size_opt }}</td>
                       <td style="padding: 10px;">{{ form.primer_product_size_max  }}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px;">Melting temperature</td>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
                       <td style="padding: 10px;">{{ form.primer_product_min_tm }}</td>
                       <td style="padding: 10px;">{{ form.primer_product_opt_tm }}</td>
                       <td style="padding: 10px;">{{ form.primer_product_max_tm }}</td>
@@ -207,11 +207,11 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td style="padding: 10px;">Salt Divalent</td>
+                      <td style="padding: 10px;">Salt Divalent (mM)</td>
                       <td style="padding: 10px;">{{ form.primer_salt_divalent }}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px;">Salt Monovalent</td>
+                      <td style="padding: 10px;">Salt Monovalent (mM)</td>
                       <td style="padding: 10px;">{{ form.primer_salt_monovalent }}</td>
                     </tr>
                     <tr>
@@ -252,5 +252,38 @@
       $('#plot-loading').css('display', 'none');
     });
   });
+
+  // Checkboxes
+ // Get all the transcript checkboxes
+const transcriptCheckboxes = document.querySelectorAll('input[name="transcript"]');
+
+// Get the "ALL" checkbox
+const allCheckbox = document.querySelector('input[value="ALL"]');
+
+// Add click event listener to the "ALL" checkbox
+allCheckbox.addEventListener('click', () => {
+  // If the "ALL" checkbox is checked, deselect all other checkboxes
+  if (allCheckbox.checked) {
+    transcriptCheckboxes.forEach(checkbox => {
+      if (checkbox !== allCheckbox) {
+        checkbox.checked = false;
+      }
+    });
+  }
+});
+
+// Add click event listeners to the other checkboxes
+transcriptCheckboxes.forEach(checkbox => {
+  if (checkbox !== allCheckbox) {
+    checkbox.addEventListener('click', () => {
+      // If any other checkbox is checked, deselect the "ALL" checkbox
+      if (checkbox.checked) {
+        allCheckbox.checked = false;
+      }
+    });
+  }
+});
+
+
 </script>
 {% endblock js %}

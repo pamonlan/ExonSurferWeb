@@ -6,6 +6,8 @@ from django.core.files.storage import FileSystemStorage
 import os
 import pandas as pd
 import numpy as np
+from ExonSurfer.exonsurfer import CreatePrimers
+
 # Create your models here.
 data_root = FileSystemStorage(location=settings.DATA_DIR)
 
@@ -158,6 +160,42 @@ class Session(models.Model):
     def __str__(self):
         return f"{self.session_id}: {self.species} {self.symbol} {self.transcript}"
 
+    def run_session(self):           
+        print("[!] ### Checking if the session has been run ###")
+        print(self.is_run)
+        if not self.is_run:
+            print("[!] ### Session not run, running it ###")
+            print("[+] Running primer design for: ", self.species, self.symbol, self.transcript, "")
+            df_blast, df_primers, error_log = CreatePrimers(gene = self.symbol, 
+                                transcripts = self.get_transcript(), 
+                                species = self.species,
+                                design_dict = self.get_design_config(),
+                                opt_prod_size = self.get_opt_prod_size(),
+                                save_files=False)
+                                
+            print("[!] Print df_primers",flush=True)
+            print(df_primers)
+            # Check if the primer design has been successful
+            # If not, redirect to error page
+            # Check id df_primers is none
+            
+            if not (df_primers is None):
+                print("[!] Primer design successful")
+                #Save the results in the DB
+                result = Result.create_result(self, df_blast, df_primers)
+                self.set_run()
+                # Create a new column with the pair_num
+                df_primers["pair_num"] = df_primers.index
+            else:
+                print("[!] Primer design failed",flush=True)
+                #Redirect to error page indicating the error_log
+        else:
+            print("[!] ### Session already run, getting results ###", flush=True)
+            df_primers = Result.objects.get(session_id=self).get_primer_file()
+            df_blast = Result.objects.get(session_id=self).get_blast_file()
+            error_log = None
+        return df_blast, df_primers, error_log
+
     def get_session_data_path(self):
         """
         Method to get the session data path
@@ -168,6 +206,19 @@ class Session(models.Model):
         """
         return os.path.join(settings.DATA_DIR, self.session_id)
 
+    def get_transcript(self):
+            """
+            Method to get the transcript
+            Returns
+            -------
+            Transcript
+                Transcript object
+            """
+            if self.transcript == "ALL":
+                return "ALL"
+            else:
+                return eval(self.transcript)
+             
     def remove_temporal(self):
         """
         Method to remove session and session files
@@ -222,6 +273,16 @@ class Session(models.Model):
         self.primer_config = primer_config
         self.save()
 
+    def get_opt_prod_size(self):
+        """
+        Method to get the optimal product size
+        Returns
+        -------
+        int
+            Optimal product size
+        """
+        return self.primer_config.primer_product_size_opt
+    
     def get_design_config(self):
         """
         Method to get the design configuration

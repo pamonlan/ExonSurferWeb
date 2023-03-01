@@ -47,7 +47,10 @@
 
           <table cellspacing="10" cellpadding="2" border="0">
             <tbody><tr>
-            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ forloop.counter }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ pair.num }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}" target="_blank">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+            </tr>
+            <tr>
+              <td align="left"> <a href="#"><b>Download as Excel</b></a></td>
             </tr>
             <tr>
               <td align="left"><b>Junction Information</b></td>
@@ -84,14 +87,15 @@
               <td align="center"> {{pair.reverse_tm}} </td>
               <td align="center">{{pair.reverse_gc}} </td>
             </tr>
-            {% if pair.other_transcripts%}
-            <tr style="background-color: #f44336;">
-              <!-- Indicate with red color-->
-              <td align="left"><b>Possible inespecificity</b></td>
-              <td align="left">{{pair.other_transcripts}}</td>
+            {% if primer_pair.other_transcripts%}
+            <tr class="table-warning"></trclass>
+              <td colspan="5" bgcolor="#CCCCCC">
+                Warning possible inespecificities. Check <a href="#" class="alert-link">off-target here</a>. Give it a click if you like.
+              </td>
             </tr>
             {%endif%}
-            </tbody></table>
+            </tbody>
+          </table>
               
         </div>
       </div>
@@ -108,17 +112,17 @@
       <h2>Primer Results</h2>
       <hr class="my-4">
       {%if identifier%}
-      <table id="example" class="table table-hover" style="width:100%">
+      <table id="example" class="table table-sm table-hover " style="width:100%">
         <thead style="background-color: #355C8E"> 
           <tr>
-          {% for c in  col%}
-            <th>{{c}}</th>
+          {% for c in  pretty_cols %}
+            <th><font color="white">{{c}}</font></th>
           {% endfor %}
           </tr>
         </thead>
         <tfoot>
           <tr>
-            {% for c in  col%}
+          {% for c in  pretty_cols%}
             <th>{{c}}</th>
           {% endfor %}
           </tr>
@@ -158,12 +162,27 @@
         
           // DataTable
           var table = $('#example').DataTable( {
-              scrollY:        true,
-              scrollX:        true,
-              scrollCollapse: true,
-              paging:         false,
-              fixedColumns:   true,
-              "ajax": '{% url "results_json" identifier=identifier %}',
+            order: [[10, 'desc']],
+            scrollX:        true,
+            scrollCollapse: true,
+            dom: 'B<"clear">lfrtip',
+            buttons: {
+              name: 'primary',
+              buttons: [ 'csv', 'excel', {
+                      text: 'TSV',
+                      extend: 'csvHtml5',
+                      fieldSeparator: '\t',
+                      extension: '.tsv'
+                  }]
+              },
+            "columnDefs": [ {
+                "targets": 0,
+                "data": "0",
+                "render": function ( data, type, row, meta ) {
+                  return '<a href="/design/primerblast/primer_view/{{identifier}}/'+data+'"  target="_blank">'+data+'</a>';
+                }
+              }],
+            "ajax": '{% url "results_json" identifier=identifier %}',
           } );
       
           // Filter event handler

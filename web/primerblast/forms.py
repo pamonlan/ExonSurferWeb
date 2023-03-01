@@ -89,7 +89,7 @@ class PrimerBlastForm(forms.ModelForm):
             TRANSCRIPT_CHOICES =[]
         
         finally:
-            transcript = forms.ChoiceField(label='Transcript', choices=TRANSCRIPT_CHOICES)
+            transcript = forms.MultipleChoiceField(label='Transcript', choices=TRANSCRIPT_CHOICES)
             self.fields['transcript'] = transcript
 
 

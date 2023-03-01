@@ -3,10 +3,28 @@ import plotly.graph_objects as go
 import plotly.offline as opy
 import plotly.io as pio
 
+from ExonSurfer.visualization import plot_rawseq
+
 config = {
     'toImageButtonOptions': {
         'format': 'svg', # one of png, svg, jpeg, webp
     }}
+
+def plot_cdna(pair_id, final_df, species, release=108):
+    """
+    Function that highlights the OFF target alignment of the primers. 
+    Used the primer_pair_id to get the alignment from the database
+    Args:
+        pair_id (int): Primer pair id
+        final_df (dataframe): Dataframe returned by exon surfer
+        species (str): Species name
+        release (str): Release name
+    Returns:
+        html (str): cDNA in html format
+    """
+    html = plot_rawseq.highlight_ontarget(pair_id, final_df, species, release)
+    return html
+
 
 def plot_primerpair_aligment(transcripts, exons, primers, contig):
     """

@@ -11,13 +11,32 @@ from ExonSurfer.exonsurfer import CreatePrimers
 from .models import Session, PrimerConfig, Result
 from ensembl.models import Transcript
 from .management.transcript_info import get_exon_transcript_information
-from .management.visualization import plot_primerpair_aligment
+from .management.visualization import plot_primerpair_aligment, plot_cdna
 
 
 ### Sharing Parameters
 # This parameters are shared between the views
 #
-#lCol = ["pair_num"	option	junction	junction_description	forward	reverse	amplicon_size	forward_tm	reverse_tm	forward_gc	reverse_gc	amplicon_tm	other_transcripts_rpred	other_genes_rpred	indiv_als	other_transcripts	other_genes	pcod_trans	pcod_genes	other_genes_rpred_count	other_transcripts_rpred_count	pair_score
+lCol = ['pair_num', 'forward',  'reverse', 'amplicon_size', 'amplicon_tm',
+         'forward_tm', 'reverse_tm', 'forward_gc',  'reverse_gc', 'indiv_als',
+          'pair_score']
+
+pretty_names = {
+            'pair_num': 'Primer Pair',
+            'forward': 'Forward Primer',
+            'reverse': 'Reverse Primer',
+            'amplicon_size': 'Amplicon Size',
+            'forward_tm': 'Forward Tm',
+            'reverse_tm': 'Reverse Tm',
+            'forward_gc': 'Forward GC',
+            'reverse_gc': 'Reverse GC',
+            'amplicon_tm': 'Amplicon Tm',
+            'indiv_als': 'Individual Alignment Score',
+            'other_transcripts': 'Transcript Off-target',
+            'other_genes': 'Gene Off-target',
+            'pair_score': 'Pair Score'
+                }
+
 
 ## Landing page view
 ## This view is the first one to be loaded
@@ -164,6 +183,9 @@ class PrimerBlastFormView(CreateView):
                     return redirect('runprimerblast', session_slug=lSession[0].session_id)
                 else:
                     print("[+] Creating new session", flush=True)
+                    if "ALL" in transcript:
+                        transcript = "ALL"
+                    print("[+] Creating session for: ", species, symbol, transcript, flush=True)
                     session = Session.create_session(species, symbol, transcript)
                     session.set_design_config(primer_config)                
 
@@ -195,7 +217,6 @@ class ExonSurferView(CreateView):
     def get(self, request, session_slug):
         try:
             # Obtain the gene, symbol and species from the form
-
             context = {}
             context["identifier"] = session_slug
             context["title"] = "Primer Blast Results"
@@ -205,59 +226,30 @@ class ExonSurferView(CreateView):
             context["species"] = session.species
             context["symbol"] = session.symbol
             context["transcript"] = session.transcript
-
-            # Check if the session has been run, if not run it
-            print("[!] ### Checking if the session has been run ###")
-            print(session.is_run)
-            if not session.is_run:
-                print("[!] ### Session not run, running it ###")
-                df_blast, df_primers, error_log = CreatePrimers(gene = session.symbol, 
-                                    transcripts = session.transcript, 
-                                    species = session.species,
-                                    design_dict = session.get_design_config(),
-                                    save_files=False)
-                                    
-                print("[!] Print df_primers")
-                print(df_primers)
-                # Check if the primer design has been successful
-                # If not, redirect to error page
-                # Check id df_primers is none
+            
+            # Obtain primer results from the session
+            df_blast, df_primers, error_log = session.run_session()
                 
-                if not (df_primers is None):
-                    print("[!] Primer design successful")
-                    #Save the results in the DB
-                    result = Result.create_result(session, df_blast, df_primers)
-                    session.set_run()
-                    context["col"] = ["Pair",] + df_primers.columns.tolist()
-                    # Create a new column with the pair_num
-                    df_primers["pair_num"] = df_primers.index
-                else:
-                    print("[!] Primer design failed")
-                    #Redirect to error page indicating the error_log
-                    request.session["error_log"] = error_log
-                    return redirect('ed', session_slug=session_slug)
+            if (df_primers is None):
+                print("[!] Primer design failed")
+                #Redirect to error page indicating the error_log
+                request.session["error_log"] = error_log
+                return redirect('ed', session_slug=session_slug)
             else:
-                df_primers = Result.objects.get(session_id=session).get_primer_file()
-                context["col"] = df_primers.columns.tolist()
-            
-
-            
-            #Sort by pair_penalty
-            df_primers = df_primers.sort_values(by=["pair_score"], ascending=False)
-
-            #Get the top 5 primers, from different junctions
-
-            top_primers = df_primers.drop_duplicates(subset=["junction"], keep="first")
-            top_primers = df_primers.head(5)
-
-            #Round to two decimals
-            top_primers = top_primers.round(2)
-            
-
-            context["top_primers"] = top_primers.to_dict(orient="records")
-
-
-
+                print("[+] Primer design completed")
+                # Sort results by pair_score
+                df_primers = df_primers.sort_values(by=["pair_score"], ascending=False)
+                #Get the top 5 primers, from different junctions
+                top_primers = df_primers.drop_duplicates(subset=["junction"], keep="first")
+                top_primers = df_primers.head(5)
+                #Round to two decimals
+                top_primers = top_primers.round(2)
+                top_primers.loc[:,"num"] = [x.replace("Pair","") for x in top_primers.pair_num.tolist()]
+                context["top_primers"] = top_primers.to_dict(orient="records")
+                # Select columns to show in the table
+                #Write pretty names for the columns
+                pretty_cols = [pretty_names[col] for col in lCol]
+                context["pretty_cols"] = pretty_cols
         except Exception as error:
             print("[!] Error in the ExonSurferView")
             print(error)
@@ -287,6 +279,7 @@ class PrimerPairView(CreateView):
 
             context = {}
             context["identifier"] = session_slug
+            context["pair"] = pair
             context["title"] = "Primer Pair Results"
              
             session = Session.objects.get(session_id=session_slug)
@@ -309,7 +302,6 @@ class PrimerPairView(CreateView):
                 #Add symbol, species, primers and transcript to the request.session
                 request.session["symbol"] = session.symbol
                 request.session["species"] = session.species
-                request.session["transcript"] = session.transcript
                 #request.session["primer_pair"] = pair
 
         except Exception as error:
@@ -325,18 +317,13 @@ class PrimerPairView(CreateView):
 ## Transcript Exon View
 ## Show the transcript and exon information
 
-
-
 def ExonTranscriptView(request):
     try:
         # Obtain the symbol, and species from the rqeuest.session
         symbol = request.session["symbol"]
         species = request.session["species"]
         #Obtain the transcript from the request, if not, set to ALL
-        if "transcript" in request.session:
-            transcript = request.session["transcript"]
-        else:
-            transcript = "ALL"
+        transcript = "ALL"
         #Obtain the primer_pair from the request, if not, set to []
         if "primer_pair" in request.session:
             primer_pair = request.session["primer_pair"]
@@ -354,6 +341,41 @@ def ExonTranscriptView(request):
 
     return HttpResponse(html)
 
+## cDNA Transcript View
+## Show the cDNA and the primers aligned
+
+def cDNATranscriptView(request, session_slug, pair):
+    """
+    Function to show the cDNA, and the primers aligned
+    Args:
+        request ([type]): [description]
+        session_slug (uuid): Session identifier
+    Returns:
+        html: html with the cDNA and the primers aligned
+    """
+    try:
+        #Obtain the session
+        print("[!] Obtaining session",flush=True)
+        session = Session.objects.get(session_id=session_slug)
+        #Obtain symbol, transcript and species from the session
+        species = session.species
+        print("[!] Obtaining primer df",flush=True)
+        final_df = Result.objects.get(session_id=session).get_primer_file()
+        final_df.index = final_df.pair_num
+        print(final_df.head())
+        print("[!] Obtaining cDNA",flush=True)
+        #pair_id = int(pair_id.replace("Pair",""))
+        html = plot_cdna(pair, final_df, species)
+        print(html)
+
+    except Exception as error:
+        print("[!] Error in the cDNATranscriptView",flush=True)
+        print(error)
+        context = {}
+
+        raise Http404(f'Error in the cDNATranscriptView: {error}...!')
+    return HttpResponse(html)
+    
     ############
     ### JSON ###
     ############
@@ -375,6 +397,8 @@ def ListJson(request, identifier):
         df = Result.objects.get(session_id=session).get_primer_file()
         # Round the values to two decimals
         df = df.round(2)
+        df = df[lCol]
+        df.columns = [pretty_names[col] for col in lCol]
         result = df.to_json(orient='values')
         json_dict = {}
         json_dict["data"] = json.loads(result)
