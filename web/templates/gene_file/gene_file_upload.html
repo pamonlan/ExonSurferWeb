@@ -1,0 +1,328 @@
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+
+{% block css%}
+    <!-- Bootstrap core CSS -->
+    <link href= "{% static 'index/css/forms.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block body %}
+
+    <div class="container">
+      <div class="row" style="padding-top: 4%;">
+        <div class="col-lg-8 mx-auto">
+          <h2> <b>{{title}}</b> </h2>
+          {% if messages %}
+          <div>
+              <ul>
+              {% for message in messages %}
+              <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>{{message | safe}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              {% endfor %}
+              </ul>
+          </div>  
+        {% endif %}
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Field Summary</span>
+              </div>
+              <div class="field-group-content">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Species</th>
+                      <th>Upload File</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">{{form.gene_symbol}}</td>
+                      <td style="padding: 10px;">
+                        <div class="form-group">
+                          <select name="species" id="selectSpecies">
+                            <option name="species" value="homo_sapiens"><i>Homo sapiens</i></option>
+                            <option name="species" value="mus_musculus"><i>Mus musculus</i></option>
+                            <option name="species" value="rattus_norvegicus"><i>Rattus norvegicus</i></option>
+                          </select>
+                        </div>
+                      </td>
+                      <td>{{form.file}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Primer Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Min</th>
+                      <th>Opt</th>
+                      <th>Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">GC content (%)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_gc }}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_gc  }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_gc  }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_tm }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Length (base pairs)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_size}}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_size }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_size }}</td>
+                    </tr>
+                    <!-- Radio button to select the number of primers pair to compute High and default, return 2000, or 750-->
+                    <tr>
+                      <td style="padding: 10px;">Number of primer pairs to compute:</td>
+                      <td colspan="3" style="padding: 10px;">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_high" value=3000 >
+                          <label class="form-check-label" for="primer_count_high">High (2000 pairs)</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_middle" value=750 checked>
+                          <label class="form-check-label" for="primer_count_low">Middle (750 pairs)</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_low" value=150 >
+                          <label class="form-check-label" for="primer_count_low">Low (150 pairs)</label>
+                        </div>
+                        {% if user.is_superuser %}
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_low" value=15 >
+                          <label class="form-check-label" for="primer_count_low">SuperLow (15 pairs)</label>
+                        </div>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <!-- Radio button to select the amplicon type -->
+                    <tr>
+                      <td style="padding: 10px;">Number of primer pairs to compute:</td>
+                      <td colspan="3" style="padding: 10px;">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_junction_design" id="primer_junction_design" value="spann_junction" checked>
+                          <label class="form-check-label" for="primer_junction_design">Primers spanning exon junctions</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_junction_design" id="primer_junction_design" value="spanning_flank_junction" >
+                          <label class="form-check-label" for="primer_junction_design">Primers spanning and flanking exon junctions</label>
+                        </div>
+                      </td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+   
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Amplicon Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Min</th>
+                      <th>Opt</th>
+                      <th>Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Product size (base)</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_min }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_opt }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_max  }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
+                      <td style="padding: 10px;">{{ form.primer_product_min_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_opt_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_max_tm }}</td>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">PCR Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Salt divalent (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_divalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Salt monovalent (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_monovalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">dNTP Concentration (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_dntp_conc }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Blast Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table style="padding: 10px; text-align: center;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Maximum E-value</td>
+                      <td style="padding: 10px;">{{ form.primer_e_cutoff }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Minimum percentage of identity(%)</td>
+                      <td style="padding: 10px;">{{ form.primer_i_cutoff }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum number of off-targets to search for</td>
+                      <td style="padding: 10px;">{{ form.primer_max_sep }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <button id="submit-button" type="submit" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 120%" >Submit Analysis</button>
+
+            <button id="loading-button" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 120%" hidden disabled>
+              <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+              Loading...
+            </button>
+          </form>
+          
+          
+
+        </div>
+      </div>
+    </div>
+ 
+{% endblock body %}
+
+{% block js %}
+<script src="{% static 'index/js/form.js'%}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Show loading spinner
+    $('#plot-loading').show();
+    
+    // Make AJAX request to the plotly view
+    $.get('{% url "plotly" %}', function(data) {
+      // Hide loading spinner
+      // Add plot to container
+      $('#plotly-container').html(data);
+      $('#plot-loading').hide();
+      $('#plot-loading').css('display', 'none');
+    });
+  });
+
+  // Checkboxes
+ // Get all the transcript checkboxes
+const transcriptCheckboxes = document.querySelectorAll('input[name="transcript"]');
+
+// Get the "ALL" checkbox
+const allCheckbox = document.querySelector('input[value="ALL"]');
+
+// Add click event listener to the "ALL" checkbox
+allCheckbox.addEventListener('click', () => {
+  // If the "ALL" checkbox is checked, deselect all other checkboxes
+  if (allCheckbox.checked) {
+    transcriptCheckboxes.forEach(checkbox => {
+      if (checkbox !== allCheckbox) {
+        checkbox.checked = false;
+      }
+    });
+  }
+});
+
+// Add click event listeners to the other checkboxes
+transcriptCheckboxes.forEach(checkbox => {
+  if (checkbox !== allCheckbox) {
+    checkbox.addEventListener('click', () => {
+      // If any other checkbox is checked, deselect the "ALL" checkbox
+      if (checkbox.checked) {
+        allCheckbox.checked = false;
+      }
+    });
+  }
+});
+
+// Loadding button
+
+  var submitButton = document.getElementById('submit-button');
+  var loadingButton = document.getElementById('loading-button');
+
+  function showLoading() {
+    submitButton.disabled = true;
+    submitButton.hidden = true;
+    loadingButton.hidden = false;
+  }
+
+  document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault(); // prevent the form from submitting
+    showLoading(); // call the function to show the loading button
+    // do whatever processing you need to do here
+    // when you're done, you can either submit the form or redirect the user to another page
+    // depending on your requirements
+    this.submit(); // submit the form
+  });
+
+  $(".alert").alert('close')
+</script>
+{% endblock js %}

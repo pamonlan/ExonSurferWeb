@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+    <!-- Table with job status information -->
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <h2>Job Status Information</h2>
+    <hr class="my-4">
+    <table cellspacing="10" cellpadding="2" border="0">
+        <tbody>
+            <tr>
+                <td colspan="2" bgcolor="#CCCCCC"><b>Session Information</b></td>
+            </tr>
+            <tr>
+                <td align="left"><b>Session ID</b></td>
+                <td>{{ session.session_id }}</td>
+            </tr>
+            <tr>
+                <td colspan="2" bgcolor="#CCCCCC"><b>Job Information</b></td>
+            </tr>
+            <tr>
+                <td align="left"><b>ID</b></td>
+                <td>{{ job.job_id }}</td>
+            </tr>
+            <tr>
+                <td align="left"><b>Status</b></td>
+                <td>{{ job.job_status }}</td>
+            </tr>
+            <tr>
+                <td align="left"><b>Description</b></td>
+                <td>{{ job.job_description }}</td>
+            </tr>
+            {% if job.job_error %}
+            <tr class="table-warning"></trclass>
+                <td colspan="5" bgcolor="#CCCCCC">
+                    {{ job.job_error }}
+                </td>
+              </tr>
+            {% endif %}
+
+            <tr>
+                <td align="left"><b>Time (in seconds)</b></td>
+                <td>{{ time_difference_seconds|floatformat:0}}</td>
+            </tr>
+            <tr>
+                <td colspan="2" bgcolor="#CCCCCC"><b>Gene Information</b></td>
+            </tr>
+            <tr>
+                <td align="left"><b>Symbol</b></td>
+                <td>{{ gene.gene_name }}</td>
+            </tr>
+            <tr>
+                <td align="left"><b>Ensembl ID</b></td>
+                <td><a href="{{ gene.get_ensembl_url }}" target="blank">{{ gene.gene_id }}</a></td>
+            </tr>
+            <tr>
+                <td align="left"><b>Species</b></td>
+                <td>{{ gene.get_species }}</td>
+            </tr>
+            <tr>
+                <td colspan="2" bgcolor="#CCCCCC"><b>Transcript Information</b></td>
+            </tr>
+            <tr>
+                <td align="left"><b>Transcripts Selected</b></td>
+                <td>{{ transcript }}</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <!-- Check, Save, and Cancel buttons -->
+                    <div class="d-flex justify-content-center mt-5">
+                        <button type="button" class="btn btn-primary mr-3" id="check_button">Check</button>
+                        <a href="{% url 'cancel_job' job_id=job.id %}" class="btn btn-danger">Cancel</a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+            </table>
+            
+            </div>
+            {% endblock %}
+
+{% block js %}
+<script>
+    setInterval(function() {
+        location.reload();
+    }, 5000);
+
+  // Get the button element by its ID
+  const checkButton = document.getElementById('check_button');
+
+  // Add an event listener to the button element
+  checkButton.addEventListener('click', function() {
+    // Reload the current page when the button is clicked
+    location.reload();
+  });
+</script>
+
+{% endblock %}

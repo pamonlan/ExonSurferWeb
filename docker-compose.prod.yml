@@ -14,8 +14,42 @@ services:
       - media_volume:/home/app/web/Data
     expose:
       - 8000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
 
+  rq_high:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    command: python3 manage.py rqworker high 
+    links:
+      - redis
+    volumes:
+      - media_volume:/home/app/web/Data
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - web
+      - db
+    entrypoint: ["/home/app/web/entrypoint_2.sh"]
 
+  rq_low:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    command: python3 manage.py rqworker low 
+    links:
+      - redis
+    volumes:
+      - media_volume:/home/app/web/Data
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - web
+      - db
+    entrypoint: ["/home/app/web/entrypoint_2.sh"]
 
   nginx:
     build: ./nginx
@@ -26,7 +60,15 @@ services:
       - 8889:80
     depends_on:
       - web
+      
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.prod.db
 
 volumes:
   static_volume:
   media_volume:
+  postgres_data:

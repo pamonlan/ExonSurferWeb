@@ -1,0 +1,38 @@
+.field-group {
+  margin-bottom: 20px;
+  border-radius: .25rem;
+  border: 1px solid black;
+  transition: height 0.3s ease;
+  overflow: hidden;
+  width: 120%;
+}
+
+.field-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  background-color: #e0f2fd;
+}
+
+.field-group-name {
+  font-weight: bold;
+}
+
+.field-group-content {
+  padding: 10px;
+}
+
+.arrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.expanded .arrow {
+  transform: rotate(78deg);
+}
+
+.expanded .field-group-content {
+  height: auto;
+}

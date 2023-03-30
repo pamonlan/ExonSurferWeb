@@ -22,6 +22,15 @@ class Gene(models.Model):
     def __str__(self):
         return self.gene_name
 
+    def get_ensembl_url(self):
+        return "http://www.ensembl.org/{}/Gene/Summary?db=core;g={};".format(self.get_species(), self.gene_id) 
+    def get_species(self):
+        species_dict = {
+            "homo_sapiens": "Homo sapiens",
+            "mus_musculus": "Mus musculus",
+            "rattus_norvegicus": "Rattus norvegicus",
+        }
+        return species_dict[self.species]
     
     gene_name = models.CharField(max_length=100)
     gene_id = models.CharField(max_length=100)
@@ -50,6 +59,20 @@ class Transcript(models.Model):
     
     def __str__(self):
         return self.transcript_name
+    
+    
+    def get_species(self):
+        species_dict = {
+            "homo_sapiens": "Homo sapiens",
+            "mus_musculus": "Mus musculus",
+            "rattus_norvegicus": "Rattus norvegicus",
+        }
+        return species_dict[self.species]
+    
+
+    def get_ensembl_url(self):
+        return "http://www.ensembl.org/{}/Transcript/Summary?db=core;t={};".format(self.get_species(), self.transcript_id)
+
 
     transcript_name = models.CharField(max_length=100)
     transcript_id = models.CharField(max_length=100)

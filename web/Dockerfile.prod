@@ -14,9 +14,11 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # install dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
     python3.6 python3-pip python3-dev \
-    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
-    git && \
+    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev libpq-dev libpq5\
+    git postgresql postgresql-contrib && \
     rm -rf /var/lib/apt/lists/*
+
+
 
 # install Python dependencies
 COPY requirements.txt .
@@ -45,7 +47,8 @@ ENV TZ=Europe/Kiev \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYENSEMBL_CACHE_DIR=/home/app/web/Data \
-    EXONSURFER_CACHE_DIR=/home/app/web/Data
+    EXONSURFER_CACHE_DIR=/home/app/web/Data \
+    REDIS_URL='redis://redis/0'
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -57,6 +60,9 @@ RUN apt-get update && \
     python3.8 python3-pip python3.8-dev \
     build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
      git
+
+# Setup Postgres
+RUN apt-get install --no-install-recommends -y postgresql postgresql-contrib libpq5
 
 # create application directories and user
 RUN mkdir -p /home/app $APP_HOME/ -p $APP_HOME/staticfiles $APP_HOME/Data $APP_HOME/staticfiles/account && \
@@ -71,18 +77,21 @@ WORKDIR $APP_HOME
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY requirements.txt .
 RUN pip3 install --no-cache /wheels/*
-
 # build and install ExonSurfer.py
 RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
     cd ExonSurfer && \
+    cat setup.py && \
     python3 setup.py install --user && \
     cd .. && rm -rf ExonSurfer
+
+
 
 #COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
 #RUN echo $(ls $APP_HOME/ExonSurfer)
 #RUN cd $APP_HOME/ExonSurfer/ && python3 ./setup.py install --user
 # copy entrypoint-prod.sh
 COPY ./scripts/docker/entrypoint.sh $APP_HOME
+COPY ./scripts/docker/entrypoint_2.sh $APP_HOME
 
 # copy project
 COPY . $APP_HOME
@@ -92,6 +101,7 @@ RUN chown -R nobody:nogroup $APP_HOME && \
     chown -R nobody:nogroup $HOME && \
     chown -R nobody:nogroup  /home/app/.local && \
     chmod +x $APP_HOME/entrypoint.sh && \
+    chmod +x $APP_HOME/entrypoint_2.sh && \
     chmod ugo+rw $APP_HOME/Data
 
 RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log

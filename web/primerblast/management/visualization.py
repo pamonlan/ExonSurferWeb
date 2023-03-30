@@ -5,12 +5,21 @@ import plotly.io as pio
 
 from ExonSurfer.visualization import plot_rawseq
 
-config = {
+config = {"modeBarButtonsToRemove":[ "autoScale2d", "editInChartStudio", "editinchartstudio", \
+                                    "hoverCompareCartesian", "hovercompare", "lasso", "lasso2d", "orbitRotation", \
+                                    "orbitrotation", "pan", "pan2d", "pan3d", "reset", "resetCameraDefault3d", \
+                                    "resetCameraLastSave3d", "resetGeo", "resetSankeyGroup",  \
+                                    "resetViewMapbox", "resetViews", "resetcameralastsave", \
+                                    "resetsankeygroup",  "resetview", "resetviews", "select", "select2d", \
+                                    "sendDataToCloud", "senddatatocloud", "tableRotation", "tablerotation",  "toggleHover",\
+                                    "toggleSpikelines", "togglehover", "togglespikelines"  "zoom2d", "zoom3d", \
+                                    "zoomIn2d", "zoomInGeo", "zoomInMapbox", "zoomOut2d", "zoomOutGeo", "zoomOutMapbox", "zoomin", "zoomout"],
+    'displaylogo': False,
     'toImageButtonOptions': {
         'format': 'svg', # one of png, svg, jpeg, webp
     }}
 
-def plot_cdna(pair_id, final_df, species, release=108):
+def plot_cdna(pair_id, final_df, species, release=108, file=False):
     """
     Function that highlights the OFF target alignment of the primers. 
     Used the primer_pair_id to get the alignment from the database
@@ -22,9 +31,31 @@ def plot_cdna(pair_id, final_df, species, release=108):
     Returns:
         html (str): cDNA in html format
     """
-    html = plot_rawseq.highlight_ontarget(pair_id, final_df, species, release)
+    try:
+        html = plot_rawseq.highlight_ontarget(pair_id, final_df, species, release,file=file)
+    except Exception as e:
+        print("Error in plot_cdna", flush=True)
+        print(e, flush=True)
     return html
 
+
+def plot_off_target(pair_id, final_df, species,transcripts, release=108):
+    """
+    MAIN FUNCTION: highlights the OFF target alignment of the primers. 
+    Args: 
+        pair_id [in] (str)  Primer pair identifier (ex "Pair1")
+        final_df [in] (str) Final design DF returned by exon surfer
+        species [in] (str)  Organism
+        strings [out] (l)   List of strings to write to the html file
+    """
+    try:
+        lHtml = plot_rawseq.highlight_offtarget(pair_id, final_df, species, transcripts)
+    except Exception as e:
+        print("Error in plot_off_target", flush=True)
+        print(e, flush=True)
+        lHtml = []
+
+    return lHtml
 
 def plot_primerpair_aligment(transcripts, exons, primers, contig):
     """
@@ -132,5 +163,24 @@ def plot_primerpair_aligment(transcripts, exons, primers, contig):
                                 ticktext=["<b> %s </b>"%x for x in list(transcripts.keys())],
                                 range=[-0.6, len(transcripts)-0.4]))
 
-    html = pio.to_html(fig, full_html=False)
+
+    html = pio.to_html(fig, full_html=False, config=config)
     return html
+
+def create_ex_css():
+# Define list of colors
+    lColors = ['#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#e6ab02', '#a6761d', '#666666']
+
+    # Generate CSS code for classes .ex1 to .exN
+    css_code = ''
+    for i, color in enumerate(lColors):
+        # Define class name and lighter color
+        class_name = f'.ex{i+1}'
+        lighter_color = '#%02x%02x%02x' % tuple(int(c, 16) + 30 for c in color[1:])
+        
+        # Generate CSS for normal and highlighted versions of class
+        css_code += f"{class_name} {{color: {color}; display: inline;}}\n"
+        css_code += f"{class_name}H {{color: {color}; background-color: {lighter_color}; display: inline;}}\n\n"
+
+    # Print CSS code
+    print(css_code)

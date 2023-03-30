@@ -20,7 +20,13 @@ from primerblast import views as primerblast_views
 
 urlpatterns = [
     path('', primerblast_views.SelectGeneSpeciesView.as_view(), name = "index"),
-
+    path('privacy/', views.privacy, name = "privacy"),
+    path('imprint/', views.imprint, name = "imprint"),
+    path('references/', views.references, name = "references"),
     path('admin/', admin.site.urls),
     path('design/', include('primerblast.urls')),
+    path('primer_queue/', include('primer_queue.urls')),
+    path('gene_file/', include('gene_file.urls')),
+    path('django-rq/', include('django_rq.urls')),
+    path('download-log-file/', views.download_log_file, name='download_log_file'),
 ]

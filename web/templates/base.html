@@ -24,7 +24,7 @@
     <!-- Custom styles for this template -->
     <link href="{% static 'index/css/jumbotron.css' %}" rel="stylesheet">
     <title>ExonSurfer: A Web-tool for Exon-specific Primer Design</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <!--<link rel="stylesheet" href="{% static 'index/css/styles.css' %}">-->
 
     {% block css %}
     {% endblock css %}
@@ -47,6 +47,14 @@
           <li class="nav-item active">
             <!-- <a class="nav-link" href="{% url 'index'%}" data-bcup-haslogintext="no">Home <span class="sr-only">(current)</span></a> -->
           </li>
+          {% if user.is_superuser%}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'download_log_file' %}">
+              <i class="fas fa-download"></i>
+              Download Log
+            </a>
+          </li>
+          {% endif %}
 
         </ul>
       </div>
@@ -70,21 +78,19 @@
     </main>
 
     <footer class="container">
-      <p>© Monfort-Lanzas, P. & Rusu, E. et al, Biochemical Immunotoxicology Group, Medical University of Innsbruck  2022</p>
+      <p>© Monfort-Lanzas, P. & Rusu, E. C. et al, Biochemical Immunotoxicology Group, Medical University of Innsbruck  2023</p>
+      <p><a href="{% url 'privacy'%}"> Privacy </a> |<a href="{%url 'imprint' %}"> Imprint</a> | <a href="{%url 'references'%}">References</a></p>
     </footer>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{% static 'js/jquery-3.2.1.slim.min.js'%}" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="{% static 'index/js/jquery-3.2.1.slim.min.js'%}"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="{% static 'index/js/popper.min.js'%}"></script>
     <script src="{% static 'index/js/bootstrap.min.js'%}"></script>
 
-       <!-- Custom JavaScript for AutoFelect Chosen -->
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.jquery.min.js"></script>
+  <!-- Custom JavaScript for Autoselect Chosen -->
    <!-- Multiple Select Scripts-->
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
@@ -92,7 +98,7 @@
    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.jquery.min.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.min.css">
   <script type="text/javascript">
-  $(".chosen").chosen({width: "100%", max_shown_results: 50});
+  $(".chosen").chosen({width: "100%", max_shown_results: 150,    'placeholder_text_multiple':'Please choose gene ...',});
   </script>
 
     {% block js %}

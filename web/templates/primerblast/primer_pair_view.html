@@ -1,0 +1,179 @@
+{% extends 'base.html' %}        
+{% load static %}
+<!DOCTYPE html>
+
+{% block css %}
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <link href= "{% static 'index/css/cdna.css' %}" rel="stylesheet">
+
+
+{% endblock %}
+
+
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+
+    <!-- Table with top 5 primer pair results  from top_primers context -->
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <h2>Primer Pair Information</h2>
+    <hr class="my-4">
+      <div class="row">
+        <div class = "col-xl">
+
+          <table cellspacing="10" cellpadding="2" border="0">
+            <tbody>
+            <tr>
+              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ primer_pair.num }}</b></td>
+            </tr>
+            <tr>
+              <td align="left"> <a href="{% url 'download_pair' session_slug=identifier pair=primer_pair.pair_num %}"><b>Download as Excel</b></a></td>
+            </tr>
+            <tr>
+              <td align="left"> <b>Gene Symbol</b></td>
+              <td>{{gene.gene_name}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Gene Ensembl ID</b></td>
+              <td><a href="{{gene.get_ensembl_url}}" target="blank">{{gene.gene_id}}</a></td>
+            </tr>
+            <tr>
+              <td align="left"><b>Transcripts Selected</b></td>
+              <td>{{transcript}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Species</b></th>
+              <td>{{gene.get_species}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Junction Information</b></td>
+              <td align="left">{{primer_pair.junction}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Detected Transcripts</b></td>
+              <td align="left">
+              {% for transcript in lTranscripts %}
+                <a href="{{transcript.get_ensembl_url}}" target="blank"> {{transcript.transcript_id}}</a>
+              {%endfor%}
+              </td>
+            </tr>
+            <tr>
+              <td align="left"><b>Pair Score</b></td>
+              <td align="left">{{primer_pair.pair_score |floatformat:0}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Amplicon Size</b></td>
+              <td align="left">{{primer_pair.amplicon_size}}</td>
+            </tr>
+            <tr>
+              <td align="left"><b>Amplicon TM</b></td>
+              <td align="left">{{primer_pair.amplicon_tm |floatformat:0}}</td>
+            </tr>
+            <tr>
+              <td align="left"></td>
+              <td align="center"><b>Sequence </b><font size="2">(5' <font face="Symbol">-&gt;</font> 3')</font></td>
+              <td align="center"><b>Length</b></td>
+              <td align="center"><b>Tm</b></td>
+              <td align="center"><b>GC</b></td>
+            </tr>
+
+            <tr>
+              <td align="left">Forward Primer</td>
+              <td align="left"><font face="Courier">{{primer_pair.forward}}</font></td>
+              <td align="center">{{ primer_pair.forward|length }}</td>
+              <td align="center"> {{primer_pair.forward_tm |floatformat:0}} </td>
+              <td align="center">{{primer_pair.forward_gc |floatformat:0}} </td>
+            </tr>
+            <tr>
+              <td align="left">Reverse Primer</td>
+              <td align="left"><font face="Courier">{{primer_pair.reverse}}</font></td>
+              <td align="center">{{ primer_pair.reverse|length }}</td>
+              <td align="center"> {{ primer_pair.reverse_tm |floatformat:0 }} </td>
+              <td align="center">{{primer_pair.reverse_gc |floatformat:0}} </td>
+            </tr>
+            {% if primer_pair.off_targets == 1 %}
+            <tr class="table-warning"></trclass>
+              <td colspan="5" bgcolor="#CCCCCC">
+                Warning possible inespecificities. Check <a href="{% url 'off_target_view' session_slug=identifier pair=primer_pair.pair_num %}" class="alert-link" target="blank">off-target here</a>. 
+              </td>
+            </tr>
+            {%endif%}
+            </tbody></table>
+              
+        </div>
+      </div>
+  </div>
+  <!-- Exon view -->
+  <div class="container" style="padding-top: 3%">
+    <h2>cDNA junction view</h2>
+    <hr class="my-4">
+    <div class="row">
+      <div class = "col-xl">
+        <div id="cdna-container"></div>
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+              <p align="center"> <b> Exons legend: </b></p>
+            </div>
+
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 10px;">
+              {% for key, value in dExons.items %}
+              <div style="background-color: {{value}}; width: 40px; height: 40px; margin: 10px;"></div>
+              <p style="margin-top:10px;">{{key}}</p>
+              {% endfor %}
+
+            </div>
+        <div class="text-center" id="cdna-loading">
+
+          <div class="spinner-border" role="status" id="cdna-loading">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>        
+      </div>
+    </div>
+  </div>
+  {% if gene != None %}
+  <!-- Transcript Variants View -->
+  <div class="container" style="padding-top: 3%">
+    <h2>Transcript Variants View</h2>
+    <hr class="my-4">
+    <div class="row">
+      <div class = "col-xl">
+        <div id="plotly-container"></div>
+        <div class="text-center" id="plot-loading">
+          <div class="spinner-border" role="status" id="plot-loading">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>        
+      </div>
+    </div>
+  </div>
+  {%endif%}
+  {% endblock body %}
+
+{% block js%}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Show loading spinner
+    $('#plot-loading').show();
+    $('#cdna-loading').show();
+
+    // Make AJAX request to the plotly view
+    $.get('{% url "plotly" %}', function(data) {
+      // Hide loading spinner
+      // Add plot to container
+      $('#plotly-container').html(data);
+      $('#plot-loading').hide();
+      $('#plot-loading').css('display', 'none');
+    });
+
+    // Make AJAX request to the plotly view
+    $.get('{% url "cdna_view" session_slug=identifier pair=pair%}', function(data) {
+      // Hide loading spinner
+      // Add plot to container
+      $('#cdna-container').html(data);
+      $('#cdna-loading').hide();
+      $('#cdna-loading').css('display', 'none');
+    });
+  });
+</script>
+{% endblock js%}

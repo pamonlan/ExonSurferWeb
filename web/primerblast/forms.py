@@ -25,6 +25,15 @@ class SpeciesGeneForm(forms.Form):
         
         #Filter RAT_CHOICES with empty gene_name
         RAT_CHOICES = [x for x in RAT_CHOICES if x[0] != '']
+        #Filter MOUSE_CHOICES with empty gene_name
+        MOUSE_CHOICES = [x for x in MOUSE_CHOICES if x[0] != '']
+        #Filter HUMAN_CHOICES with empty gene_name
+        HUMAN_CHOICES = [x for x in HUMAN_CHOICES if x[0] != '']
+
+        #Sort alphabetically the gene_name of each species
+        HUMAN_CHOICES = sorted(HUMAN_CHOICES, key=lambda x: x[0])
+        MOUSE_CHOICES = sorted(MOUSE_CHOICES, key=lambda x: x[0])
+        RAT_CHOICES = sorted(RAT_CHOICES, key=lambda x: x[0])
         
     except Exception as error:
         print("[!] Error in SpeciesGeneForm")

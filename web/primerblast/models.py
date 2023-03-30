@@ -6,7 +6,8 @@ from django.core.files.storage import FileSystemStorage
 import os
 import pandas as pd
 import numpy as np
-from ExonSurfer.exonsurfer import CreatePrimers
+from ExonSurfer import exonsurfer
+from ExonSurfer import exonsurfer_fromfile
 
 # Create your models here.
 data_root = FileSystemStorage(location=settings.DATA_DIR)
@@ -18,6 +19,10 @@ class PrimerConfig(models.Model):
     Class to store the primer configuration
     Attributes
     ----------
+    primer_pairs_number: int
+        Number of primer pairs to generate
+    primer_junction_design: str
+        Type of junction design
     primer_opt_size: int
         Optimal size of the primer
     primer_min_size: int
@@ -52,6 +57,12 @@ class PrimerConfig(models.Model):
         Concentration of monovalent cations
     primer_dntp_conc: float
         Concentration of dNTPs
+    primer_i_cutoff: Int
+        Percentage of identify cutoff from the BLAST search
+    primer_e_value: float
+        E-value cutoff from the BLAST search
+    primer_max_sep: int
+        Maximum separation between the primers for off-targets
     Methods
     -------
     """
@@ -88,7 +99,8 @@ class PrimerConfig(models.Model):
             PrimerConfig object
         """
         primer_config = self
-        print(dict)
+        primer_junction_design = dict["primer_junction_design"]
+        primer_config.primer_pairs_number = dict["primer_pairs_number"]
         primer_config.primer_opt_size = dict["primer_opt_size"]
         primer_config.primer_min_size = dict["primer_min_size"]
         primer_config.primer_max_size = dict["primer_max_size"]
@@ -106,35 +118,61 @@ class PrimerConfig(models.Model):
         primer_config.primer_salt_divalent = dict["primer_salt_divalent"]
         primer_config.primer_salt_monovalent = dict["primer_salt_monovalent"]
         primer_config.primer_dntp_conc = dict["primer_dntp_conc"]
+        primer_config.primer_i_cutoff = dict["primer_i_cutoff"]
+        primer_config.primer_e_cutoff = dict["primer_e_cutoff"]
+        primer_config.primer_max_sep = dict["primer_max_sep"]
 
         
         primer_config.save()
 
         return primer_config
+    
+    def get_primer_junction_design(self):
+        """
+        Method to get the junction design
+        Returns
+        -------
+        str
+            Junction design
+        """
+        if self.primer_junction_design == "spann_junction":
+            iDesign = 1
+        else:
+            iDesign = 2
+        return iDesign
+    
+    #Primer Pairs Number
+    primer_pairs_number = models.IntegerField(default=1000)
     #Primer Size
     primer_opt_size = models.IntegerField(default=20)
-    primer_min_size = models.IntegerField(default=17)
-    primer_max_size = models.IntegerField(default=35)
+    primer_min_size = models.IntegerField(default=18)
+    primer_max_size = models.IntegerField(default=27)
+    #Primer Junction Dessign
+    primer_junction_design = models.TextField(default="exon_exon_junction")
     #Primer Tm
-    primer_opt_tm = models.FloatField(default=59)
-    primer_min_tm = models.FloatField(default=57.5)
-    primer_max_tm = models.FloatField(default=60.5)
+    primer_opt_tm = models.FloatField(default=60)
+    primer_min_tm = models.FloatField(default=57)
+    primer_max_tm = models.FloatField(default=63)
     #Primer GC
     primer_opt_gc = models.IntegerField(default=50)
     primer_min_gc = models.IntegerField(default=20)
     primer_max_gc = models.IntegerField(default=80)
     #Product Size
-    primer_product_size_min = models.IntegerField(default=60)
+    primer_product_size_min = models.IntegerField(default=120)
     primer_product_size_opt = models.IntegerField(default=200)
     primer_product_size_max = models.IntegerField(default=250)
     #Product Tm
     primer_product_opt_tm = models.FloatField(default=80)
-    primer_product_min_tm = models.FloatField(default=65)
+    primer_product_min_tm = models.FloatField(default=76)
     primer_product_max_tm = models.FloatField(default=90)
     #PCR Parameters
     primer_salt_divalent = models.FloatField(default=1.5)
     primer_salt_monovalent = models.FloatField(default=50)
     primer_dntp_conc = models.FloatField(default=0.6)
+    #Blast Parameters
+    primer_i_cutoff = models.IntegerField(default=70)
+    primer_e_cutoff = models.FloatField(default=0.8)
+    primer_max_sep = models.IntegerField(default=700)
 
 
 
@@ -160,18 +198,37 @@ class Session(models.Model):
     def __str__(self):
         return f"{self.session_id}: {self.species} {self.symbol} {self.transcript}"
 
-    def run_session(self):           
+    def run_session(self, gene_file = None):           
         print("[!] ### Checking if the session has been run ###")
         print(self.is_run)
         if not self.is_run:
             print("[!] ### Session not run, running it ###")
             print("[+] Running primer design for: ", self.species, self.symbol, self.transcript, "")
-            df_blast, df_primers, error_log = CreatePrimers(gene = self.symbol, 
-                                transcripts = self.get_transcript(), 
-                                species = self.species,
-                                design_dict = self.get_design_config(),
-                                opt_prod_size = self.get_opt_prod_size(),
-                                save_files=False)
+            # Run primer design
+            if self.from_file:
+                # Run primer design from file
+                df_blast, df_primers, error_log = exonsurfer_fromfile.CreatePrimers(file = gene_file,
+                    species = self.species,
+                    design_dict = self.get_design_config(),
+                    opt_prod_size = self.get_opt_prod_size(),
+                    e_value = self.get_e_value(),
+                    i_cutoff=self.get_i_cutoff(),
+                    max_sep=self.get_max_sep(),
+                    NPRIMERS=self.get_nprimers(),
+                    d_option=self.get_primer_junction_design(),
+                    save_files=False)
+            else:
+                df_blast, df_primers, error_log = exonsurfer.CreatePrimers(gene = self.symbol, 
+                                    transcripts = self.get_transcript(), 
+                                    species = self.species,
+                                    design_dict = self.get_design_config(),
+                                    opt_prod_size = self.get_opt_prod_size(),
+                                    e_value = self.get_e_value(),
+                                    i_cutoff=self.get_i_cutoff(),
+                                    max_sep=self.get_max_sep(),
+                                    NPRIMERS=self.get_nprimers(),
+                                    d_option=self.get_primer_junction_design(),
+                                    save_files=False)
                                 
             print("[!] Print df_primers",flush=True)
             print(df_primers)
@@ -195,6 +252,7 @@ class Session(models.Model):
             df_blast = Result.objects.get(session_id=self).get_blast_file()
             error_log = None
         return df_blast, df_primers, error_log
+    
 
     def get_session_data_path(self):
         """
@@ -214,11 +272,32 @@ class Session(models.Model):
             Transcript
                 Transcript object
             """
+            print("[!] Getting transcript", flush=True)
+            print(self.transcript, flush=True)
+            #Print the class type from the transcript
+            print(type(self.transcript), flush=True)
             if self.transcript == "ALL":
                 return "ALL"
+            #If self.transcript is a list return the list
+            elif type(self.transcript) == list:
+                return self.transcript
             else:
                 return eval(self.transcript)
-             
+
+    def get_e_value(self):
+        return self.primer_config.primer_e_cutoff
+
+    def get_i_cutoff(self):
+        return self.primer_config.primer_i_cutoff
+
+    def get_max_sep(self):
+        return self.primer_config.primer_max_sep
+    
+    def get_nprimers(self):
+        return self.primer_config.primer_pairs_number
+              
+    def get_primer_junction_design(self):
+        return self.primer_config.get_primer_junction_design()
     def remove_temporal(self):
         """
         Method to remove session and session files
@@ -273,6 +352,13 @@ class Session(models.Model):
         self.primer_config = primer_config
         self.save()
 
+    def set_from_file(self):
+        """
+        Method to set the from file
+        """
+        self.from_file = True
+        self.save()
+        
     def get_opt_prod_size(self):
         """
         Method to get the optimal product size
@@ -374,6 +460,7 @@ class Session(models.Model):
     transcript = models.CharField(max_length=100)
     primer_config = models.ForeignKey('PrimerConfig', on_delete=models.CASCADE, null=True)
     is_run = models.BooleanField(default=False)
+    from_file = models.BooleanField(default=False)
 
     
 class Result(models.Model):

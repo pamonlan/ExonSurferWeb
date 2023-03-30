@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+
+<div class="container">
+  <!-- About ExonSurfer -->
+    <div class="row gy-5">
+        <div class="w-100" style="padding-top: 6%;"></div>
+        <div class="col-lg">
+            <h1>References</h1>
+            <p>ExonSurfer is a bioinformatics web tool that utilizes various tools to perform its analyses. In this section, we provide the necessary citations for the tools used in ExonSurfer:</p>
+            <ul>
+            <li>The Ensembl database (http://www.ensembl.org) was used as a reference genome database. Specifically, the PyEnsembl Python package (https://github.com/openvax/pyensembl) was utilized as a Python interface to Ensembl reference genome metadata such as exons and transcripts.</li>
+        
+            <li>BLAST+ suite (Camacho C., Coulouris G., Avagyan V., Ma N., Papadopoulos J., Bealer K., & Madden T.L. (2008) "BLAST+: architecture and applications." BMC Bioinformatics 10:421. PubMed) was utilized for nucleotide sequence similarity searches to obtain the primer specificities.</li>
+        
+            <li>Primer3 (Andreas Untergasser, Ioana Cutcutache, Triinu Koressaar, Jian Ye, Brant C Faircloth, Maido Remm, Steven G Rozen.  Primer3--new capabilities and interfaces. Nucleic Acids Research 2012; doi:10.1093/nar/gks596) was utilized for the design of the primer pairs.</li>
+          </ul>
+        <p>We would like to acknowledge and thank the developers of these tools for providing these invaluable resources.</p>
+        
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

@@ -1,25 +1,22 @@
-from django.shortcuts import render
 from django.shortcuts import render, redirect
-from django.urls import reverse_lazy,reverse
-
 from django.http import HttpResponse, Http404, JsonResponse
 from .forms import SpeciesGeneForm, PrimerBlastForm   
+from primer_queue.models import PrimerJob
 from django.views.generic import (View, CreateView, ListView, DeleteView)
 from django.contrib import messages
-import os
-from ExonSurfer.exonsurfer import CreatePrimers
 from .models import Session, PrimerConfig, Result
-from ensembl.models import Transcript
+from gene_file.models import GeneFile
+from ensembl.models import Transcript, Gene
 from .management.transcript_info import get_exon_transcript_information
-from .management.visualization import plot_primerpair_aligment, plot_cdna
-
-
+from .management.visualization import plot_primerpair_aligment, plot_cdna, plot_off_target
+from django.http import HttpResponse
+import pandas as pd
 ### Sharing Parameters
 # This parameters are shared between the views
 #
 lCol = ['pair_num', 'forward',  'reverse', 'amplicon_size', 'amplicon_tm',
          'forward_tm', 'reverse_tm', 'forward_gc',  'reverse_gc', 'indiv_als',
-          'pair_score']
+         'detected', 'not_detected', 'pair_score', 'off_targets']
 
 pretty_names = {
             'pair_num': 'Primer Pair',
@@ -34,15 +31,20 @@ pretty_names = {
             'indiv_als': 'Individual Alignment Score',
             'other_transcripts': 'Transcript Off-target',
             'other_genes': 'Gene Off-target',
-            'pair_score': 'Pair Score'
+            'pair_score': 'Pair Score',
+            'detected': 'Detected Transcripts',
+            'not_detected': 'Not Detected Transcripts',
+            'off_targets': 'Off-target Transcripts/Genes',
                 }
 
+lColors = ['#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', \
+     '#999999', '#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666']
 
 ## Landing page view
 ## This view is the first one to be loaded
 ## It allows the user to select the species and the gene
 class SelectGeneSpeciesView(CreateView):
-    template_name = 'index.html'
+    template_name = 'exonsurfer/index.html'
 
     def get(self, request):
         try:
@@ -72,37 +74,43 @@ class SelectGeneSpeciesView(CreateView):
                 #and obtain the gene and species
                 if dForm["species"] == "homo_sapiens":
                     if dForm["human_symbol"] == "":
-                        messages.warning(request, "Please, select a gene")
-                        return redirect('selectgenespecies')
+                        messages.warning(request, "Please, write a gene")
+                        return redirect('index')
                     else:
                         human_symbol = dForm["human_symbol"]
                         species = dForm["species"]
                 elif dForm["species"] == "mus_musculus":
                     if dForm["mouse_symbol"] == "":
-                        messages.warning(request, "Please, select a gene")
-                        return redirect('selectgenespecies')
+                        messages.warning(request, "Please, write a gene")
+                        return redirect('index')
                     else:
                         human_symbol = dForm["mouse_symbol"]
                         species = dForm["species"]
                 elif dForm["species"] == "rattus_norvegicus":
                     if dForm["rat_symbol"] == "":
-                        messages.warning(request, "Please, select a gene")
-                        return redirect('selectgenespecies')
+                        messages.warning(request, "Please, write a gene")
+                        return redirect('index')
                     else:
                         human_symbol = dForm["rat_symbol"]
                         species = dForm["species"]
+                else:
+                    messages.warning(request, "Please, write a gene name")
+                    return redirect('index')
                 
 
 
             except Exception as error:
-                print(error)
-
-            finally:
+                messages.warning(request, "Please, write a gene name")
+                print("[!] Error in the form, in view: SelectGeneSpeciesView", flush=True)
+                print("[!] Error: ", error, flush=True)
+                return redirect('index')
+            else:
                 # Redirect to the next step sending the gene and species
                 return redirect('primerblast', species=species, symbol=human_symbol)
         else:
-            print("Algo ha ido mal")
-            print(form.errors)
+            print("[!] Error in the form, in view: SelectGeneSpeciesView", flush=True)
+            print("[!] Form not valid", form.errors, flush=True)
+            print(form.errors, flush=True)
             messages.warning(request,form.errors)
 
         return render(request, self.template_name, {'form': form})
@@ -113,15 +121,18 @@ class SelectGeneSpeciesView(CreateView):
 ## Allows the user to select the transcript and the parameters for the primer design
 
 class PrimerBlastFormView(CreateView):
-    template_name = 'primer_config_forms.html'
+    template_name = 'primerblast/primer_config_forms.html'
 
     def get(self, request, species, symbol):
         try:
             # Obtain the session from the DB with the session_slug (identifier)
             print("[+] Obtaining transcript list for in view: ", species, symbol, "")
             self.species = species
+            gene = Gene.objects.get(gene_name=symbol, species=species)
+            print(gene)
             self.symbol = symbol
             lT = Transcript.objects.filter(gene_name=symbol, species=species, transcript_biotype="protein_coding")
+            #Invert list
             print(lT)
 
             if len(lT) == 0:
@@ -131,9 +142,9 @@ class PrimerBlastFormView(CreateView):
             form = PrimerBlastForm(species=species, symbol=symbol, lT=list(lT.values_list('transcript_id', flat=True)))
 
             context = {'form': form}
-            context["title"] = "Assign Primers parameters"
+            context["title"] = "Assign design parameters"
             context["species"] = species
-            context["symbol"] = symbol
+            context["gene"] = gene
             context["transcripts"] = lT
 
             ## Add symbol and species to the request.session
@@ -141,8 +152,10 @@ class PrimerBlastFormView(CreateView):
             request.session["symbol"] = symbol
 
         except Exception as error:
-            print("[!] Error obtaining the session: ", error, "")
-            raise Http404('Session not found...!')
+            print("[!] Error in view: PrimerBlastFormView", flush=True)
+            print("[!] Error: ", error, "")
+            messages.warning(request, f"There is no transcript for the gene {symbol} in the {species}")
+            return redirect('index')
 
         else:
             # We pase the session to the template with the Context Dyct
@@ -187,7 +200,13 @@ class PrimerBlastFormView(CreateView):
                         transcript = "ALL"
                     print("[+] Creating session for: ", species, symbol, transcript, flush=True)
                     session = Session.create_session(species, symbol, transcript)
-                    session.set_design_config(primer_config)                
+                    session.set_design_config(primer_config)
+                    session.save()
+                      
+                    # Queu the primer design
+                    job = PrimerJob()
+                    job.set_session(session)
+                    job.queue_job()            
 
             except Exception as error:
                 print("[!] Error creating session")
@@ -196,14 +215,15 @@ class PrimerBlastFormView(CreateView):
             else:
                 # Redirect to the next step sending the gene and species
                 print("[+] Redirecting to the next step")
-                return redirect('runprimerblast', session_slug=session.session_id)
+                return redirect('jobstatus', session_slug=session.session_id)
         else:
             print("[!] Error in the form")
             print(form.errors)
             messages.warning(request,form.errors)
-            context["title"] = "Blablabla"
+            context["title"] = "Assign design parameters"
             context["species"] = species
             context["symbol"] = symbol
+            context["transcripts"] = lT
 
 
         return render(request, template_name=self.template_name, context=context)
@@ -212,7 +232,7 @@ class PrimerBlastFormView(CreateView):
 ## View to run the primer design
 ## Take the parameters from the previous view and run the primer design
 class ExonSurferView(CreateView):
-    template_name = 'results_view.html'
+    template_name = 'primerblast/results_view.html'
 
     def get(self, request, session_slug):
         try:
@@ -220,22 +240,29 @@ class ExonSurferView(CreateView):
             context = {}
             context["identifier"] = session_slug
             context["title"] = "Primer Blast Results"
-             
+            
             session = Session.objects.get(session_id=session_slug)
+            try:
+                gene = Gene.objects.get(gene_name=session.symbol, species=session.species)
+            except:
+                gene = None
+            # Obtain PrimerJob from session
+            primer_job = PrimerJob.objects.get(session_id=session)
             #Obtain symbol, transcript and species from the session
             context["species"] = session.species
             context["symbol"] = session.symbol
             context["transcript"] = session.transcript
+            context["primer_config"] = session.primer_config
+            context["gene"] = gene
+
             
             # Obtain primer results from the session
-            df_blast, df_primers, error_log = session.run_session()
-                
-            if (df_primers is None):
-                print("[!] Primer design failed")
-                #Redirect to error page indicating the error_log
-                request.session["error_log"] = error_log
-                return redirect('ed', session_slug=session_slug)
-            else:
+            # Check if the primer design has been completed
+            # If not, redirect to the job status page
+            # If yes, obtain the results and display them
+            if primer_job.job_status == "complete":   
+
+                df_blast, df_primers, error_log = session.run_session()
                 print("[+] Primer design completed")
                 # Sort results by pair_score
                 df_primers = df_primers.sort_values(by=["pair_score"], ascending=False)
@@ -249,7 +276,13 @@ class ExonSurferView(CreateView):
                 # Select columns to show in the table
                 #Write pretty names for the columns
                 pretty_cols = [pretty_names[col] for col in lCol]
+                #Remove Off-Target Score
+                pretty_cols.remove("Off-target Transcripts/Genes")
                 context["pretty_cols"] = pretty_cols
+            else:
+                print("[+] Primer design not completed")
+                return redirect('jobstatus', session_slug=session.session_id)
+            
         except Exception as error:
             print("[!] Error in the ExonSurferView")
             print(error)
@@ -271,7 +304,7 @@ class PrimerPairView(CreateView):
     View to show the primer pair results
 
     """
-    template_name = 'primer_pair_view.html'
+    template_name = 'primerblast/primer_pair_view.html'
 
     def get(self, request, session_slug, pair):
         try:
@@ -283,10 +316,15 @@ class PrimerPairView(CreateView):
             context["title"] = "Primer Pair Results"
              
             session = Session.objects.get(session_id=session_slug)
+            try:
+                gene = Gene.objects.get(gene_name=session.symbol, species=session.species)
+            except:
+                gene = None
             #Obtain symbol, transcript and species from the session
             context["species"] = session.species
             context["symbol"] = session.symbol
             context["transcript"] = session.transcript
+            context["gene"] = gene
 
             # Check if the session has been run, if not sent error
             print("[!] ### Checking if the session has been run ###")
@@ -296,22 +334,82 @@ class PrimerPairView(CreateView):
                 print(pair)
                 primer_pair = session.get_primer_pair(pair)
                 primer_pair_blast = session.get_primer_pair_blast(pair)
-                print(primer_pair_blast)
                 context["primer_pair"] = primer_pair
+                #List exons and colors
+                lExons = primer_pair["junction"].split("-")
+                dExons = dict(zip(lExons, lColors))
+                context["dExons"] = dExons
+                #List transcript that detect the primer pair
+                
+                try:
+                    lTranscripts = primer_pair["detected"].split(";")
+                    lTranscripts = Transcript.objects.filter(transcript_id__in=lTranscripts)
+                except:
+                    lTranscripts = []
 
+                context["lTranscripts"] = lTranscripts
                 #Add symbol, species, primers and transcript to the request.session
                 request.session["symbol"] = session.symbol
                 request.session["species"] = session.species
                 #request.session["primer_pair"] = pair
 
         except Exception as error:
-            print(error)
+            print("[!] Error in the PrimerPairView",flush=True)
+            print(error,flush=True)
             context = {}
 
             raise Http404('Session not found...!')
         
         return render(request, template_name=self.template_name, context=context)
 
+
+class PrimerPairOffTargetView(CreateView):
+    """
+    View to show the primer pair off-target results
+    """
+    template_name = 'primerblast/primer_pair_offtarget_view.html'
+
+    def get(self, request, session_slug, pair):
+
+        try:
+            # Obtain the session, and pair_id from get
+
+            context = {}
+            context["identifier"] = session_slug
+            context["pair"] = pair
+            context["title"] = "Primer Pair Results"
+             
+            session = Session.objects.get(session_id=session_slug)
+            try:
+                gene = Gene.objects.get(gene_name=session.symbol, species=session.species)
+            except:
+                gene = None
+            #Obtain symbol, transcript and species from the session
+            context["species"] = session.species
+            context["symbol"] = session.symbol
+            context["gene"] = gene
+
+            # Check if the session has been run, if not sent error
+            print("[!] ### Checking if the session has been run ###")
+            if not session.is_run:
+                raise Http404('Session not run...!')
+            else:
+                print(pair)
+                primer_pair = session.get_primer_pair(pair)
+                try:
+                    lTranscripts = primer_pair["detected"].split(";")
+                    lTranscripts = Transcript.objects.filter(transcript_id__in=lTranscripts)
+                except:
+                    lTranscripts = []
+                context["lTranscripts"] = lTranscripts
+        except Exception as error:
+            print("[!] Error in the PrimerPairOffTargetView", flush=True)
+            print(error, flush=True)
+            context = {}
+            raise Http404(f'"[!] Error in the PrimerPairOffTargetView" {error}')
+        else:
+            context["primer_pair"] = primer_pair
+        return render(request, template_name=self.template_name, context=context)
 
 
 ## Transcript Exon View
@@ -365,15 +463,65 @@ def cDNATranscriptView(request, session_slug, pair):
         print(final_df.head())
         print("[!] Obtaining cDNA",flush=True)
         #pair_id = int(pair_id.replace("Pair",""))
-        html = plot_cdna(pair, final_df, species)
+        #If session is from_file get file path else false
+        if session.from_file:
+            print("[!] Obtaining gene file",flush=True)
+            gene_path = GeneFile.objects.get(session_id=session)
+            gene_path = gene_path.get_gene_file_path()
+            print(gene_path, flush=True)
+        else:
+            gene_path = False
+        print("[!] Obtaining cDNA",flush=True)
+        html = plot_cdna(pair, final_df, species, file=gene_path)
+        print("[!] Obtained cDNA",flush=True)
         print(html)
 
     except Exception as error:
         print("[!] Error in the cDNATranscriptView",flush=True)
+        print(error, flush=True)
+
+    return HttpResponse(html)
+
+
+def cDNATranscriptOffView(request, session_slug, pair):
+    """
+    Function to show the cDNA, and the primers aligned
+    Args:
+        request ([type]): [description]
+        session_slug (uuid): Session identifier
+    Returns:
+        html: html with the cDNA and the primers aligned
+    """
+    try:
+        #Obtain the session
+        print("[!] Obtaining session",flush=True)
+        session = Session.objects.get(session_id=session_slug)
+        #Obtain symbol, transcript and species from the session
+        species = session.species
+        print("[!] Obtaining primer df",flush=True)
+        final_df = Result.objects.get(session_id=session).get_primer_file()
+        final_df.index = final_df.pair_num
+        final_df.fillna("", inplace=True)
+        print(final_df.head())
+        print((final_df.to_string()),flush=True)
+        print("[!] Obtaining cDNA",flush=True)
+        #pair_id = int(pair_id.replace("Pair",""))
+        print(final_df.loc[pair].to_dict(),flush=True)
+
+        if session.from_file:
+            t = ""
+        else:
+            t = session.get_transcript()
+        #change final_df other_transcripts False to ""
+        final_df["other_transcripts"] = final_df["other_transcripts"].apply(lambda x: "" if x == False else x)
+        html = plot_off_target(pair, final_df, session.species, t)
+        print(html)
+
+    except Exception as error:
+        print("[!] Error in the cDNATranscriptOffView",flush=True)
         print(error)
         context = {}
 
-        raise Http404(f'Error in the cDNATranscriptView: {error}...!')
     return HttpResponse(html)
     
     ############
@@ -399,6 +547,8 @@ def ListJson(request, identifier):
         df = df.round(2)
         df = df[lCol]
         df.columns = [pretty_names[col] for col in lCol]
+        # Drop "Off-target Transcripts/Genes" column
+        df.drop(columns=["Off-target Transcripts/Genes"], inplace=True)
         result = df.to_json(orient='values')
         json_dict = {}
         json_dict["data"] = json.loads(result)
@@ -409,7 +559,52 @@ def ListJson(request, identifier):
         
     return JsonResponse(json_dict, safe = False)
 
+## Function to download the primer pair results as excel file
 
+
+def download_excel_pair(request, session_slug, pair):
+    # Retrieve the results from the database
+    session = Session.objects.get(session_id=session_slug)
+    # Obtain symbol, transcript and species from the session
+    symbol = session.symbol
+    species = session.species
+    transcript = session.transcript
+    # Obtain the primer pair
+    primer_pair = session.get_primer_pair(pair)
+    # Create a dataframe with the primer pair
+    primer_pair_df = pd.DataFrame(primer_pair, index=[0])
+    # Rename the columns
+    primer_pair_df = primer_pair_df[lCol]
+    primer_pair_df.columns = [pretty_names[col] for col in lCol]
+    # Add a citation for the primer design tool
+    primer_pair_df.loc[1, "Primer Pair"] = """The primer pair was designed using the ExonSurfer tool (Monfort-Lanzas & Rusu, 2023), 
+    which is a web-based tool for designing primers at exon-exon junctions. Please cite the following reference 
+    when using the primer pair in your research: Monfort-Lanzas, P., & Rusu, E. C. (2023). ExonSurfer: A Web-tool to Design Primers at Exon–Exon Junctions.
+      In 10th Gene Quantification Event 2023 qPCR dPCR & NGS (Po-54). Freising-Weihenstephan, School of Life Sciences, Technical University of Munich, Weihenstephan, Germany. """
+    # Set the filename for the Excel file
+    filename = f"{symbol}_{species}_{transcript}_primer_pair_{pair}.xlsx"
+    # Set the content type and headers for the response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename={}'.format(filename)
+    # Write the workbook to the response
+    primer_pair_df.to_excel(response)
+    # Return the response
+    return response
+
+def download_all(request, session_slug):
+    # Retrieve the results from the database
+    session = Session.objects.get(session_id=session_slug)
+    # Obtain symbol, transcript and species from the session
+    df = Result.objects.get(session_id=session).get_primer_file()
+    # Obtain the primer pair
+    filename = f"{session_slug}.csv"
+    # Set the content type and headers for the response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename={}'.format(filename)
+    # Write the workbook to the response
+    df.to_csv(response)
+    # Return the response
+    return response
 
     #############
     ### ERROR ###
@@ -423,7 +618,7 @@ class ErrorDesignView(CreateView):
     View to show the primer pair results
 
     """
-    template_name = 'error_design_view.html'
+    template_name = 'primerblast/error_design_view.html'
 
     def get(self, request, session_slug):
         try:

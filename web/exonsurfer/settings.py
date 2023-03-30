@@ -24,7 +24,7 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 SECRET_KEY = 'django-insecure--6s0wg_9iouh!u!hi30o7m5k9@m_dyu3p*@83618mi^gvbomd)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=1))
 
 ALLOWED_HOSTS = ["*"]
 
@@ -40,11 +40,64 @@ INSTALLED_APPS = [
 
     'ensembl',
     'primerblast',
-
+    'primer_queue',
+    'gene_file',
+    
     ##Other apps
     'crispy_forms',
     'django_extensions',
+    'django_rq',
 ]
+
+## REDIS QUEUE
+## High priority queue
+## Low priority queue
+if "REDIS_URL" in os.environ:
+    RQ_QUEUES = {
+        'default': {
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'DEFAULT_TIMEOUT': 60*60*3,
+        },
+        'high': {
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'DEFAULT_TIMEOUT': 60*60*3,
+        },
+        'low': {
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'DEFAULT_TIMEOUT': 60*60*3,
+        }
+
+    }
+
+    RQ = {
+        'host': 'redis',
+        'db': 0,
+    }
+else:
+    RQ_QUEUES = {
+        'default': {
+            'HOST': 'localhost',
+            'PORT': 6379,
+            'DB': 0,
+            'DEFAULT_TIMEOUT': 60*60*3,
+        },
+        'high': {
+            'HOST': 'localhost',
+            'PORT': 6379,
+            'DB': 0,
+            'DEFAULT_TIMEOUT': 60*60*3,
+        },
+        'low': {
+            'HOST': 'localhost',
+            'PORT': 6379,
+            'DB': 0,
+            'DEFAULT_TIMEOUT': 60*60*3,
+        },
+    }
+    
+RQ_SHOW_ADMIN_LINK = True
+
+NUM_THREADS = int(os.environ.get('NUM_THREADS', 12)) # Num Threads working in Workflow_Task
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,11 +134,20 @@ WSGI_APPLICATION = 'exonsurfer.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+        "default": {
+            "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
+            "NAME": os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+            "USER": os.environ.get("SQL_USER", "user"),
+            "PASSWORD": os.environ.get("SQL_PASSWORD", "password"),
+            "HOST": os.environ.get("SQL_HOST", "localhost"),
+            "PORT": os.environ.get("SQL_PORT", "5432"),
+        },
+        'gdpr_log': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'NAME': os.path.join(BASE_DIR, 'gdpr-log.sqlite3'),
+    },
 }
+
 
 
 # Password validation
