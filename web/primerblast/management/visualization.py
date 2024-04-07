@@ -4,6 +4,7 @@ import plotly.offline as opy
 import plotly.io as pio
 
 from ExonSurfer.visualization import plot_rawseq
+from ExonSurfer.visualization.plot_transcripts import plot_transcripts_marked, plot_transcripts_alone
 
 config = {"modeBarButtonsToRemove":[ "autoScale2d", "editInChartStudio", "editinchartstudio", \
                                     "hoverCompareCartesian", "hovercompare", "lasso", "lasso2d", "orbitRotation", \

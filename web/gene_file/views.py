@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from .forms import GeneFileForm
 from .models import GeneFile
+from exonsurfer.settings import BASE_DIR
 from primerblast.models import PrimerConfig, Session
 from primer_queue.models import PrimerJob
 from django.contrib import messages
-
+import os
+from django.http import FileResponse,HttpResponse
+from primerblast.management.form_control import add_css_classes_to_form_fields
 
 class GeneFileUploadView(TemplateView):
     template_name = "gene_file/gene_file_upload.html"
@@ -13,6 +16,8 @@ class GeneFileUploadView(TemplateView):
     def get(self, request):
         
         form = GeneFileForm()
+        form = add_css_classes_to_form_fields(form, "form-control")
+
         #Context
         context = {}
         context["form"] = form
@@ -22,14 +27,16 @@ class GeneFileUploadView(TemplateView):
 
     def post(self, request):
         form = GeneFileForm(request.POST, request.FILES)
+        form = add_css_classes_to_form_fields(form, "form-control")
         context = {'form': form}
+        print("[+] GeneFileUploadView: ", request.POST, flush=True)
 
         if form.is_valid():
             dForm = form.cleaned_data
             print("[+] Form is valid", flush=True)
             #Obtain Species, Gene Symbol
             species = dForm['species']
-            symbol = dForm['gene_symbol']
+            symbol = "Custom"
             transcript = ["ALL"]
             try:
                 # Create an instance of PrimerConfig model
@@ -64,3 +71,22 @@ class GeneFileUploadView(TemplateView):
 
 
         return render(request, template_name=self.template_name, context=context)
+
+def download_fasta(request):
+    fasta_file = os.path.join(BASE_DIR, 'example_data/example.fa')
+    with open(fasta_file, 'rb') as f:
+        file_contents = f.read()
+        # Create an HttpResponse object with the file contents
+        response = HttpResponse(file_contents, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="example.fa"'
+
+    return response
+    
+def download_genebank(request):
+    genebank_file = os.path.join(BASE_DIR, 'example_data/example.gb')
+    with open(genebank_file, 'rb') as f:
+        file_contents = f.read()
+        # Create an HttpResponse object with the file contents
+        response = HttpResponse(file_contents, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="example.gb"'
+    return response

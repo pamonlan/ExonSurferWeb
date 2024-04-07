@@ -18,6 +18,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     git postgresql postgresql-contrib && \
     rm -rf /var/lib/apt/lists/*
 
+# build and install ExonSurfer.py
+RUN git clone https://github.com/CrisRu95/ExonSurfer.git && \
+    cd ExonSurfer && \
+    pip3 install -r requirements.txt && \
+    python3 setup.py install --user && \
+    cd .. 
 
 
 # install Python dependencies
@@ -27,11 +33,8 @@ RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requi
 # copy project files
 COPY . .
 
-# build and install ExonSurfer.py
-RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
-    cd ExonSurfer && \
-    python3 setup.py install --user && \
-    cd .. && rm -rf ExonSurfer
+
+
 
 ###########
 # FINAL   #
@@ -48,7 +51,7 @@ ENV TZ=Europe/Kiev \
     PYTHONUNBUFFERED=1 \
     PYENSEMBL_CACHE_DIR=/home/app/web/Data \
     EXONSURFER_CACHE_DIR=/home/app/web/Data \
-    REDIS_URL='redis://redis/0'
+    REDIS_URL='redis://redis:6379/0'
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -67,8 +70,13 @@ RUN apt-get install --no-install-recommends -y postgresql postgresql-contrib lib
 # create application directories and user
 RUN mkdir -p /home/app $APP_HOME/ -p $APP_HOME/staticfiles $APP_HOME/Data $APP_HOME/staticfiles/account && \
     mkdir -p $HOME/.local/lib/python3.6/site-packages && \
+    mkdir -p $HOME/.local/bin && \
     useradd -u 1000 -U -d $HOME -s /bin/bash app && \
     chown -R app:app $HOME
+# Create os.path.join(DATA_DIR, 'logs', 'django.log'),
+RUN mkdir -p /home/app/web/Data/logs/ && \
+    touch /home/app/web/Data/logs/django.log && \
+    chown -R app:app /home/app/web/Data/logs/django.log
 
 # set work directory
 WORKDIR $APP_HOME
@@ -77,14 +85,18 @@ WORKDIR $APP_HOME
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY requirements.txt .
 RUN pip3 install --no-cache /wheels/*
+
+# Clone the repository and install it
+RUN git clone https://github.com/pamonlan/pyensembl.git /pyensembl && \
+    cd /pyensembl && \
+    python3 setup.py install
+    
 # build and install ExonSurfer.py
-RUN git clone https://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@github.com/CrisRu95/ExonSurfer.git && \
+RUN git clone https://github.com/CrisRu95/ExonSurfer.git && \
     cd ExonSurfer && \
-    cat setup.py && \
+    pip3 install -r requirements.txt && \
     python3 setup.py install --user && \
-    cd .. && rm -rf ExonSurfer
-
-
+    cd .. 
 
 #COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
 #RUN echo $(ls $APP_HOME/ExonSurfer)
@@ -100,9 +112,15 @@ COPY . $APP_HOME
 RUN chown -R nobody:nogroup $APP_HOME && \
     chown -R nobody:nogroup $HOME && \
     chown -R nobody:nogroup  /home/app/.local && \
+    chown -R nobody:nogroup /home/app/web/Data/logs/django.log && \
     chmod +x $APP_HOME/entrypoint.sh && \
     chmod +x $APP_HOME/entrypoint_2.sh && \
     chmod ugo+rw $APP_HOME/Data
+
+# [Errno 2] No such file or directory: '/home/app/web/Data/logs/django.log'
+RUN mkdir -p /home/app/web/Data/logs/ && \
+    touch /home/app/web/Data/logs/django.log && \
+    chown -R nobody:nogroup /home/app/web/Data/logs/django.log
 
 RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log
 RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log

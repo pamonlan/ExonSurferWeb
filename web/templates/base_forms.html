@@ -1,0 +1,249 @@
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+
+{% block css%}
+    <!-- Bootstrap core CSS -->
+    <link href= "{% static 'index/css/forms.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block body %}
+
+    <div class="container">
+      <div class="row" style="padding-top: 4%;">
+        <div class="col-lg-8 mx-auto">
+          <h2> <b>{{title}}</b> </h2>
+          {% if messages %}
+          <div>
+              <ul>
+              {% for message in messages %}
+              <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>{{message | safe}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              {% endfor %}
+              </ul>
+          </div>  
+        {% endif %}
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% block transcript_group %}
+
+            {% endblock transcript_group %}
+          
+            
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Primer Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table class="center" style="padding: 10px; text-align: left;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Min</th>
+                      <th>Opt</th>
+                      <th>Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">GC content (%)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_gc }}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_gc  }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_gc  }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_tm }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Length (bases)</td>
+                      <td style="padding: 10px;">{{ form.primer_min_size}}</td>
+                      <td style="padding: 10px;">{{ form.primer_opt_size }}</td>
+                      <td style="padding: 10px;">{{ form.primer_max_size }}</td>
+                    </tr>
+
+                    <!-- Radio button to select the number of primers pair to compute High and default, return 2000, or 750-->
+                    <tr>
+                      <td style="padding: 10px;">Number of primer pairs to design:</td>
+                      <td colspan="3" style="padding: 10px;">
+                        {% if user.is_superuser %}
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_high" value=10000 >
+                            <label class="form-check-label" for="primer_count_high">MegaHigh (10000 pairs)</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_high" value=5000 >
+                            <label class="form-check-label" for="primer_count_high">SuperHigh (5000 pairs)</label>
+                          </div>
+                        {% endif %}
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_high" value=3000 >
+                          <label class="form-check-label" for="primer_count_high">High (3000 pairs)</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_middle" value=1000 checked>
+                          <label class="form-check-label" for="primer_count_low">Middle (1000 pairs)</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_low" value=100 >
+                          <label class="form-check-label" for="primer_count_low">Low (100 pairs)</label>
+                        </div>
+                        {% if user.is_superuser %}
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_pairs_number" id="primer_count_low" value=15 >
+                          <label class="form-check-label" for="primer_count_low">SuperLow (15 pairs)</label>
+                        </div>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <!-- Radio button to select the amplicon type -->
+                    <tr>
+                      <td style="padding: 10px;">Primer junction design:</td>
+                      <td colspan="3" style="padding: 10px;">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_junction_design" id="primer_junction_design" value="spann_junction" checked>
+                          <label class="form-check-label" for="primer_junction_design">Primers spanning exon junctions</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="primer_junction_design" id="primer_junction_design" value="spanning_flank_junction" >
+                          <label class="form-check-label" for="primer_junction_design">Primers spanning or flanking exon junctions</label>
+                        </div>
+                      </td>
+                    </tr>
+                    <!-- Overlap Junctions-->
+                    <tr>
+                      <td style="padding: 10px;">Minimum 3' overlap with junction</td>
+                      <td style="padding: 10px;">{{ form.primer_min_3_overlap}}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Minimum 5' overlap with junction</td>
+                      <td style="padding: 10px;">{{ form.primer_min_5_overlap}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+   
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">Amplicon Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table class="center" style="padding: 10px; text-align: left;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Min</th>
+                      <th>Opt</th>
+                      <th>Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Product size (bases)</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_min }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_opt }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_size_max  }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Melting temperature (°C)</td>
+                      <td style="padding: 10px;">{{ form.primer_product_min_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_opt_tm }}</td>
+                      <td style="padding: 10px;">{{ form.primer_product_max_tm }}</td>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">PCR Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table class="center" style="padding: 10px; text-align: left;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Salt divalent (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_divalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Salt monovalent (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_salt_monovalent }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">dNTP concentration (mM)</td>
+                      <td style="padding: 10px;">{{ form.primer_dntp_conc }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          
+
+            <div class="field-group">
+              <div class="field-group-header">
+                <span class="field-group-name">BLAST Parameters</span>
+
+              </div>
+              <div class="field-group-content" style="display: None">
+                <table class="center" style="padding: 10px; text-align: left;">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 10px;">Maximum E-value</td>
+                      <td style="padding: 10px;">{{ form.primer_e_cutoff }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Minimum percentage of identity (%)</td>
+                      <td style="padding: 10px;">{{ form.primer_i_cutoff }}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum off-target size (bases) </td>
+                      <td style="padding: 10px;">{{ form.primer_max_sep }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <button id="submit-button" type="submit" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 100%" >Design Primers</button>
+
+            <button id="loading-button" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 100%" hidden disabled>
+              <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+              Loading...
+            </button>
+          </form>
+          
+          
+
+        </div>
+      </div>
+    </div>
+ 
+{% endblock body %}

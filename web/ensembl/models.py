@@ -20,22 +20,35 @@ class Gene(models.Model):
     """
 
     def __str__(self):
-        return self.gene_name
+        return self.gene_id
 
     def get_ensembl_url(self):
-        return "http://www.ensembl.org/{}/Gene/Summary?db=core;g={};".format(self.get_species(), self.gene_id) 
+        return "http://www.ensembl.org/{}/Gene/Summary?db=core;g={};".format(self.get_species(), self.gene_id)
+         
     def get_species(self):
         species_dict = {
             "homo_sapiens": "Homo sapiens",
             "mus_musculus": "Mus musculus",
             "rattus_norvegicus": "Rattus norvegicus",
+            "arabidopsis_thaliana": "Arabidopsis thaliana",
+            "drosophila_melanogaster":"Drosophila melanogaster"
+
         }
         return species_dict[self.species]
+    
+    def get_number_transcripts(self):
+        """
+        Function to obtain the number of protein coding transcripts 
+        for the gene.
+        """
+        lT = Transcript.objects.filter(gene_name=self.gene_name, species=self.species, transcript_biotype="protein_coding")
+        return len(lT)
     
     gene_name = models.CharField(max_length=100)
     gene_id = models.CharField(max_length=100)
     gene_biotype = models.CharField(max_length=100)
     feature = models.CharField(max_length=100)
+    seqname = models.CharField(max_length=100)
     start = models.IntegerField()
     end = models.IntegerField()
     strand = models.CharField(max_length=10)
@@ -66,6 +79,9 @@ class Transcript(models.Model):
             "homo_sapiens": "Homo sapiens",
             "mus_musculus": "Mus musculus",
             "rattus_norvegicus": "Rattus norvegicus",
+            "arabidopsis_thaliana": "Arabidopsis thaliana",
+            "drosophila_melanogaster":"Drosophila melanogaster"
+
         }
         return species_dict[self.species]
     

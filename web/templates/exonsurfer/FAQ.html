@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="text-center">Frequently Asked Questions for ExonSurfer</h2>
+        <hr>
+      </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Which organisms are supported by ExonSurfer?</h4>
+        <p>Currently, ExonSurfer supports Homo sapiens, Rattus norvegicus and Mus musculus. These come from Ensembl’s release 108 and correspond to GenBank Assembly IDs:</p>
+        <ul>
+        <li>Homo sapiens: GCA_000001405.28</li>
+        <li>Rattus norvegicus: GCF_015227675.2</li>
+        <li>Mus musculus: GCF_000001635.26</li>
+        </ul>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Can ExonSurfer design primers for transcripts not present in Ensembl’s database?</h4>
+        <p>Yes, ExonSurfer can design primers for transcripts not found in Ensembl. The sequences must be uploaded in GenBank format or FASTA format (including the junction placement in the FASTA header). ExonSurfer will check the specificity against Ensembl’s database, treating every match as a possible off-target.</p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Can ExonSurfer design primers for novel transcripts?</h4>
+        <p>Yes, ExonSurfer allows primer design for novel transcripts. This should be uploaded in FASTA format (including the junction placement in the FASTA header). ExonSurfer will check the specificity against Ensembl’s database, treating every match as a possible off-target.</p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Why do I get off-targets in my target gene?</h4>
+        <p>ExonSurfer allows transcript-specific primer design. If you only select some transcripts from a gene, or if you upload a sequence in a file, ExonSurfer treats every other match in the database as an off-target.</p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>How does ExonSurfer avoid common polymorphisms?</h4>
+        <p>By default, ExonSurfer uses masked sequences for the Homo sapiens genome. We filtered NCBI’s dbSNP database and kept all polymorphisms that had a frequency larger than 1% in any population. Polymorphisms without frequency information were discarded. These positions have been changed in the genome to an “N” and primers cannot contain any “N” in their sequence.</p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>How does ExonSurfer design primers for transcript-specific detection?</h4>
+        <p>ExonSurfer searches for unique exon junctions that all the targeted transcripts have in common. To do that, we compare the sorted exon identifiers from all the transcripts of a gene. If this is not feasible because the junctions present in the targeted transcripts are also present in untargeted isoforms, ExonSurfer reports these other isoforms as off-targets. </p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Can ExonSurfer design primers for multiple targets simultaneously?</h4>
+        <p>Yes, as long as they belong to the same gene. ExonSurfer allows primer design for some or all the transcripts of a gene. This feature is not currently supported for file input.</p>
+    </div>
+    </div>
+
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>What types of PCR experiments is ExonSurfer suitable for?</h4>
+        <p>ExonSurfer is suitable for dye-based quantitative PCR experiments.</p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+        <h4>Is ExonSurfer free to use?</h4>
+        <p>Yes, ExonSurfer is a free online tool available to anyone with an internet connection. We ask you to cite our software:</p>
+        <p>Monfort-Lanzas, P., & Rusu, E. C. (2023). ExonSurfer: A Web-tool to Design Primers at Exon–Exon Junctions. In 10th Gene Quantification Event 2023 qPCR dPCR & NGS (Po-54). Freising-Weihenstephan, School of Life Sciences, Technical University of Munich, Weihenstephan, Germany. </p>
+    </div>
+    </div>
+
+    <div class="row">
+    <div class="col-md-12">
+      <h4>How long does it take for ExonSurfer to design primers?</h4>
+      <p>You can choose the "Number of primer pairs to design" in the Primer Parameters section to best suit your time requirements. The mean time for designing the different number of primer pairs are:</p>
+      <ul>
+        <li>1500 primer pairs: </li>
+        <li>200 primer pairs</li>
+        <li>50 primer pairs</li>
+      </ul>
+      <p>These values are constantly updated with the time execution information from new designs.</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

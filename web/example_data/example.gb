@@ -1,0 +1,471 @@
+LOCUS       NM_001400620            6617 bp    mRNA    linear   PRI 22-MAR-2023
+DEFINITION  Homo sapiens neural cell adhesion molecule 1 (NCAM1), transcript
+            variant 27, mRNA.
+ACCESSION   NM_001400620
+VERSION     NM_001400620.1
+KEYWORDS    RefSeq.
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1  (bases 1 to 6617)
+  AUTHORS   Chen Q, Zheng X, Lin Q and Chen J.
+  TITLE     Retrospective Analysis of the Expression of CD56 in Multiple
+            Myeloma with Bone-Related Extramedullary Diseases
+  JOURNAL   Ann Clin Lab Sci 53 (1), 14-20 (2023)
+   PUBMED   36889774
+  REMARK    GeneRIF: Retrospective Analysis of the Expression of CD56 in
+            Multiple Myeloma with Bone-Related Extramedullary Diseases.
+            Review article
+REFERENCE   2  (bases 1 to 6617)
+  AUTHORS   Liang T, Peng Z, Li C, Huang J, Wang H, Bu C, Li J, Zheng Y, Feng
+            X, Li H and Chen C.
+  TITLE     Evaluating the prognostic value of CD56 in pediatric acute myeloid
+            leukemia
+  JOURNAL   BMC Cancer 22 (1), 1339 (2022)
+   PUBMED   36544113
+  REMARK    GeneRIF: Evaluating the prognostic value of CD56 in pediatric acute
+            myeloid leukemia.
+            Publication Status: Online-Only
+REFERENCE   3  (bases 1 to 6617)
+  AUTHORS   Seymour F, Cavenagh JD, Mathews J and Gribben JG.
+  TITLE     NK cells CD56bright and CD56dim subset cytokine loss and exhaustion
+            is associated with impaired survival in myeloma
+  JOURNAL   Blood Adv 6 (17), 5152-5159 (2022)
+   PUBMED   35834731
+  REMARK    GeneRIF: NK cells CD56bright and CD56dim subset cytokine loss and
+            exhaustion is associated with impaired survival in myeloma.
+REFERENCE   4  (bases 1 to 6617)
+  AUTHORS   Picard LK, Claus M, Fasbender F and Watzl C.
+  TITLE     Human NK cells responses are enhanced by CD56 engagement
+  JOURNAL   Eur J Immunol 52 (9), 1441-1451 (2022)
+   PUBMED   35775327
+  REMARK    GeneRIF: Human NK cells responses are enhanced by CD56 engagement.
+REFERENCE   5  (bases 1 to 6617)
+  AUTHORS   Cottini F, Rodriguez J, Hughes T, Sharma N, Guo L, Lozanski G, Liu
+            B, Cocucci E, Yang Y and Benson D.
+  TITLE     Redefining CD56 as a Biomarker and Therapeutic Target in Multiple
+            Myeloma
+  JOURNAL   Mol Cancer Res 20 (7), 1083-1095 (2022)
+   PUBMED   35380709
+  REMARK    GeneRIF: Redefining CD56 as a Biomarker and Therapeutic Target in
+            Multiple Myeloma.
+REFERENCE   6  (bases 1 to 6617)
+  AUTHORS   Rossell RJ, Malik A, Helfrich W, Kemshead JT and Patel K.
+  TITLE     A discordance between the human muscle NCAM sequence and those seen
+            in other NCAM cDNA clones
+  JOURNAL   Biochim Biophys Acta 1130 (1), 95-96 (1992)
+   PUBMED   1543753
+REFERENCE   7  (bases 1 to 6617)
+  AUTHORS   van Duijnhoven HL, Helfrich W, de Leij L, Roebroek AJ, van de Ven
+            WJ, Healey K, Culverwell A, Rossell RJ, Kemshead JT and Patel K.
+  TITLE     Splicing of the VASE exon of neural cell adhesion molecule (NCAM)
+            in human small-cell lung carcinoma (SCLC)
+  JOURNAL   Int J Cancer 50 (1), 118-123 (1992)
+   PUBMED   1339414
+REFERENCE   8  (bases 1 to 6617)
+  AUTHORS   Lanier LL, Chang C, Azuma M, Ruitenberg JJ, Hemperly JJ and
+            Phillips JH.
+  TITLE     Molecular and functional analysis of human natural killer
+            cell-associated neural cell adhesion molecule (N-CAM/CD56)
+  JOURNAL   J Immunol 146 (12), 4421-4426 (1991)
+   PUBMED   1710251
+REFERENCE   9  (bases 1 to 6617)
+  AUTHORS   Bello MJ, Salagnon N, Rey JA, Guichaoua MR, Berge-Lefranc JL,
+            Jordan BR and Luciani JM.
+  TITLE     Precise in situ localization of NCAM, ETS1, and D11S29 on human
+            meiotic chromosomes
+  JOURNAL   Cytogenet Cell Genet 52 (1-2), 7-10 (1989)
+   PUBMED   2612216
+REFERENCE   10 (bases 1 to 6617)
+  AUTHORS   Dickson,G., Gower,H.J., Barton,C.H., Prentice,H.M., Elsom,V.L.,
+            Moore,S.E., Cox,R.D., Quinn,C., Putt,W. and Walsh,F.S.
+  TITLE     Human muscle neural cell adhesion molecule (N-CAM): identification
+            of a muscle-specific sequence in the extracellular domain
+  JOURNAL   Cell 50 (7), 1119-1130 (1987)
+   PUBMED   2887295
+COMMENT     REVIEWED REFSEQ: This record has been curated by NCBI staff. The
+            reference sequence was derived from FP884230.1, AP002853.4 and
+            AP000880.4.
+            
+            Summary: This gene encodes a cell adhesion protein which is a
+            member of the immunoglobulin superfamily. The encoded protein is
+            involved in cell-to-cell interactions as well as cell-matrix
+            interactions during development and differentiation. The encoded
+            protein plays a role in the development of the nervous system by
+            regulating neurogenesis, neurite outgrowth, and cell migration.
+            This protein is also involved in the expansion of T lymphocytes, B
+            lymphocytes and natural killer (NK) cells which play an important
+            role in immune surveillance. This protein plays a role in signal
+            transduction by interacting with fibroblast growth factor
+            receptors, N-cadherin and other components of the extracellular
+            matrix and by triggering signalling cascades involving FYN-focal
+            adhesion kinase (FAK), mitogen-activated protein kinase (MAPK), and
+            phosphatidylinositol 3-kinase (PI3K). One prominent isoform of this
+            gene, cell surface molecule CD56, plays a role in several
+            myeloproliferative disorders such as acute myeloid leukemia and
+            differential expression of this gene is associated with
+            differential disease progression. For example, increased expression
+            of CD56 is correlated with lower survival in acute myeloid leukemia
+            patients whereas increased severity of COVID-19 is correlated with
+            decreased abundance of CD56-expressing NK cells in peripheral
+            blood. Alternative splicing results in multiple transcript variants
+            encoding distinct protein isoforms. [provided by RefSeq, Aug 2020].
+            
+            Sequence Note: The RefSeq transcript and protein were derived from
+            genomic sequence to make the sequence consistent with the reference
+            genome assembly. The genomic coordinates used for the transcript
+            record were based on transcript alignments.
+            
+            Publication Note:  This RefSeq record includes a subset of the
+            publications that are available for this gene. Please see the Gene
+            record to access additional publications.
+            
+            ##Evidence-Data-START##
+            RNAseq introns :: single sample supports all introns SAMEA2145743,
+                              SAMEA2151741 [ECO:0000348]
+            ##Evidence-Data-END##
+            
+            ##RefSeq-Attributes-START##
+            coronavirus related :: involved in immune response or antiviral
+                                   activity
+            ##RefSeq-Attributes-END##
+PRIMARY     REFSEQ_SPAN         PRIMARY_IDENTIFIER PRIMARY_SPAN        COMP
+            1-245               FP884230.1         13-257
+            246-320             AP002853.4         147810-147884
+            321-539             AP002853.4         149717-149935
+            540-683             AP002853.4         150954-151097
+            684-821             AP002853.4         151474-151611
+            822-939             AP002853.4         152692-152809
+            940-1109            AP002853.4         153264-153433
+            1110-1252           AP000880.4         2844-2986
+            1253-1403           AP000880.4         20120-20270
+            1404-1588           AP000880.4         20645-20829
+            1589-1685           AP000880.4         21193-21289
+            1686-1856           AP000880.4         21622-21792
+            1857-1988           AP000880.4         23508-23639
+            1989-2003           AP000880.4         24776-24790
+            2004-2128           AP000880.4         44352-44476
+            2129-2306           AP000880.4         48621-48798
+            2307-2514           AP000880.4         58663-58870
+            2515-2631           AP000880.4         60235-60351
+            2632-3447           AP000880.4         61408-62223
+            3448-6617           AP000880.4         63742-66911
+FEATURES             Location/Qualifiers
+     source          1..6617
+                     /organism="Homo sapiens"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:9606"
+                     /chromosome="11"
+                     /map="11q23.2"
+     gene            1..6617
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="neural cell adhesion molecule 1"
+                     /db_xref="GeneID:4684"
+                     /db_xref="HGNC:HGNC:7656"
+                     /db_xref="MIM:116930"
+     exon            1..245
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     CDS             194..3568
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /EC_number="2.7.11.1"
+                     /note="isoform 27 precursor is encoded by transcript
+                     variant 27; antigen recognized by monoclonal antibody
+                     5.1H11; neural cell adhesion molecule, NCAM"
+                     /codon_start=1
+                     /product="neural cell adhesion molecule 1 isoform 27
+                     precursor"
+                     /protein_id="NP_001387549.1"
+                     /db_xref="GeneID:4684"
+                     /db_xref="HGNC:HGNC:7656"
+                     /db_xref="MIM:116930"
+                     /translation="MLQTKDLIWTLFFLGTAVSLQVDIVPSQGEISVGESKFFLCQVA
+                     GDAKDKDISWFSPNGEKLTPNQQRISVVWNDDSSSTLTIYNANIDDAGIYKCVVTGED
+                     GSESEATVNVKIFQKLMFKNAPTPQEFREGEDAVIVCDVVSSLPPTIIWKHKGRDVIL
+                     KKDVRFIVLSNNYLQIRGIKKTDEGTYRCEGRILARGEINFKDIQVIVNVPPTIQARQ
+                     NIVNATANLGQSVTLVCDAEGFPEPTMSWTKDGEQIEQEEDDEKYIFSDDSSQLTIKK
+                     VDKNDEAEYICIAENKAGEQDATIHLKVFAKPKITYVENQTAMELEEQVTLTCEASGD
+                     PIPSITWRTSTRNISSEEKTLDGHMVVRSHARVSSLTLKSIQYTDAGEYICTASNTIG
+                     QDSQSMYLEVQYAPKLQGPVAVYTWEGNQVNITCEVFAYPSATISWFRDGQLLPSSNY
+                     SNIKIYNTPSASYLEVTPDSENDFGNYNCTAVNRIGQESLEFILVQADTPSSPSIDQV
+                     EPYSSTAQVQFDEPEATGGVPILKYKAEWRAVGEEVWHSKWYDAKEASMEGIVTIVGL
+                     KPETTYAVRLAALNGKGLGEISAASEFKTQPVHSPPPREPSAPKLEGQMGEDGNSIKV
+                     NLIKQDDGGSPIRHYLVRYRALSSEWKPEIRLPSGSDHVMLKSLDWNAEYEVYVVAEN
+                     QQGKSKAAHFVFRTSAQPTAIPANGSPTSGLSTGAIVGILIVIFVLLLVVVDITCYFL
+                     NKCGLFMCIAVNLCGKAGPGAKGKDMEEGKAAFSKDESKEPIVEVRTEEERTPNHDGG
+                     KHTEPNETTPLTEPELPADTTATVEDMLPSVTTVTTNSDTITETFATAQNSPTSETTT
+                     LTSSIAPPATATPDSNSVPAGQATPSKGPSASAPSPAPASAPKVAPLVDLSDTPTSTP
+                     AASNLSSSVLANQGAVLSPSAPAGVGEASKAPPASKPTPAPVPTPTGAASPLAAAAAP
+                     ATEAPQAKQEAPSTKGPDPEPTQPGAAKSPAEAATALASPKSEAASVSTTNPSQGEDF
+                     KMDEGNFKTPDIDLAKDVFAALGSPAPAAGASGQAPELAPSTADSSVSPAPAKTEKGP
+                     VEAKPECQETETKPAPAEVKTVPNDATQTKENESKA"
+     sig_peptide     194..250
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="COORDINATES: ab initio prediction:SignalP:4.0"
+     misc_feature    857..859
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000255; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    1136..1138
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000255; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    1232..1234
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000255; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    1460..1462
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000255; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    1538..1540
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000269|PubMed:16335952; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    1625..1627
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="N-linked (GlcNAc...) asparagine.
+                     /evidence=ECO:0000255; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); glycosylation site"
+     misc_feature    2330..2392
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="propagated from UniProtKB/Swiss-Prot (P13591.3);
+                     transmembrane region"
+     misc_feature    2513..2515
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P13595; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); phosphorylation site"
+     misc_feature    2525..2527
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P13595; propagated from
+                     UniProtKB/Swiss-Prot (P13591.3); phosphorylation site"
+     exon            246..320
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            321..539
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            540..683
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            684..821
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            822..939
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            940..1109
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1110..1252
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1253..1403
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1404..1588
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1589..1685
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1686..1856
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1857..1988
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1989..2003
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2004..2128
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2129..2306
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2307..2514
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2515..2631
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2632..3447
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     exon            3448..6617
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /inference="alignment:Splign:2.1.0"
+     regulatory      4761..4766
+                     /regulatory_class="polyA_signal_sequence"
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="hexamer: AATAAA"
+     polyA_site      4780
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="major polyA site"
+     regulatory      6593..6598
+                     /regulatory_class="polyA_signal_sequence"
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="hexamer: AATAAA"
+     polyA_site      6617
+                     /gene="NCAM1"
+                     /gene_synonym="CD56; MSK39; NCAM"
+                     /note="major polyA site"
+ORIGIN      
+        1 actcattctc cgatcagcgc gtgaacgcag ctcggctgcc gctggcagga aacaattctg
+       61 caaaaataat catactcagc ctggcaattg tctgccccta ggtctgtcgc tcagccgccg
+      121 tccacactcg ctgcaggggg gggggcacag aatttaccgc ggcaagaaca tccctcccag
+      181 ccagcagatt acaatgctgc aaactaagga tctcatctgg actttgtttt tcctgggaac
+      241 tgcagtttct ctgcaggtgg atattgttcc cagccagggg gagatcagcg ttggagagtc
+      301 caaattcttc ttatgccaag tggcaggaga tgccaaagat aaagacatct cctggttctc
+      361 ccccaatgga gaaaagctca ccccaaacca gcagcggatc tcagtggtgt ggaatgatga
+      421 ttcctcctcc accctcacca tctataacgc caacatcgac gacgccggca tttacaagtg
+      481 tgtggttaca ggcgaggatg gcagtgagtc agaggccacc gtcaacgtga agatctttca
+      541 gaagctcatg ttcaagaatg cgccaacccc acaggagttc cgggaggggg aagatgccgt
+      601 gattgtgtgt gatgtggtca gctccctccc accaaccatc atctggaaac acaaaggccg
+      661 agatgtcatc ctgaaaaaag atgtccgatt catagtcctg tccaacaact acctgcagat
+      721 ccggggcatc aagaaaacag atgagggcac ttatcgctgt gagggcagaa tcctggcacg
+      781 gggggagatc aacttcaagg acattcaggt cattgtgaat gtgccaccta ccatccaggc
+      841 caggcagaat attgtgaatg ccaccgccaa cctcggccag tccgtcaccc tggtgtgcga
+      901 tgccgaaggc ttcccagagc ccaccatgag ctggacaaag gatggggaac agatagagca
+      961 agaggaagac gatgagaagt acatcttcag cgacgatagt tcccagctga ccatcaaaaa
+     1021 ggtggataag aacgacgagg ctgagtacat ctgcattgct gagaacaagg ctggcgagca
+     1081 ggatgcgacc atccacctca aagtctttgc aaaacccaaa atcacatatg tagagaacca
+     1141 gactgccatg gaattagagg agcaggtcac tcttacctgt gaagcctccg gagaccccat
+     1201 tccctccatc acctggagga cttctacccg gaacatcagc agcgaagaaa agactctgga
+     1261 tgggcacatg gtggtgcgta gccatgcccg tgtgtcgtcg ctgaccctga agagcatcca
+     1321 gtacactgat gccggagagt acatctgcac cgccagcaac accatcggcc aggactccca
+     1381 gtccatgtac cttgaagtgc aatatgcccc aaagctacag ggccctgtgg ctgtgtacac
+     1441 ttgggagggg aaccaggtga acatcacctg cgaggtattt gcctatccca gtgccacgat
+     1501 ctcatggttt cgggatggcc agctgctgcc aagctccaat tacagcaata tcaagatcta
+     1561 caacaccccc tctgccagct atctggaggt gaccccagac tctgagaatg attttgggaa
+     1621 ctacaactgt actgcagtga accgcattgg gcaggagtcc ttggaattca tccttgttca
+     1681 agcagacacc ccctcttcac catccatcga ccaggtggag ccatactcca gcacagccca
+     1741 ggtgcagttt gatgaaccag aggccacagg tggggtgccc atcctcaaat acaaagctga
+     1801 gtggagagca gttggtgaag aagtatggca ttccaagtgg tatgatgcca aggaagccag
+     1861 catggagggc atcgtcacca tcgtgggcct gaagcccgaa acaacgtacg ccgtaaggct
+     1921 ggcggcgctc aatggcaaag ggctgggtga gatcagcgcg gcctccgagt tcaagacgca
+     1981 gccagtccat agccctcctc cacgggaacc cagtgcacct aagctcgaag ggcagatggg
+     2041 agaggatgga aactctatta aagtgaacct gatcaagcag gatgacggcg gctcccccat
+     2101 cagacactat ctggtcaggt accgagcgct ctcctccgag tggaaaccag agatcaggct
+     2161 cccgtctggc agtgaccacg tcatgctgaa gtccctggac tggaatgctg agtatgaggt
+     2221 ctacgtggtg gctgagaacc agcaaggaaa atccaaggcg gctcattttg tgttcaggac
+     2281 ctcggcccag cccacagcca tcccagccaa cggcagcccc acctcaggcc tgagcaccgg
+     2341 ggccatcgtg ggcatcctca tcgtcatctt cgtcctgctc ctggtggttg tggacatcac
+     2401 ctgctacttc ctgaacaagt gtggcctgtt catgtgcatt gcggtcaacc tgtgtggaaa
+     2461 agccgggccc ggggccaagg gcaaggacat ggaggagggc aaggccgcct tctcgaaaga
+     2521 tgagtccaag gagcccatcg tggaggttcg aacggaggag gagaggaccc caaaccatga
+     2581 tggagggaaa cacacagagc ccaacgagac cacgccactg acggagcccg agctgcctgc
+     2641 cgacactacg gccactgtcg aggacatgct gccttctgtc accaccgtca ccactaactc
+     2701 tgacactatc accgaaacct ttgccactgc tcagaacagc cccaccagtg agaccaccac
+     2761 cctgacctcc agtattgccc cgccggccac ggccacgcct gactcaaact ctgtaccggc
+     2821 tggccaggcc accccttcca aggggcccag cgcctctgcc ccctccccgg ccccagcttc
+     2881 agcccccaag gtcgcccccc tcgttgacct gagcgacacc ccgacctcaa cccctgccgc
+     2941 tagcaatttg tcttctagtg tcctggctaa ccaaggggct gtcctcagcc caagcgcccc
+     3001 tgctggtgtc ggggaggcct ctaaggctcc tccggccagc aagcccaccc ctgcaccagt
+     3061 ccccaccccg actggggcag ccagtcctct agcagcagcg gctgcccctg ccacagaagc
+     3121 ccctcaggcc aagcaggagg ctcccagcac caaaggcccg gacccggagc ccacccagcc
+     3181 cggagccgcg aagagcccgg ccgaggcagc cacagccctt gctagcccga agagcgaggc
+     3241 tgcctccgtc agcaccacaa acccttccca gggcgaggac tttaaaatgg acgaagggaa
+     3301 cttcaagacc ccagatattg accttgcaaa ggatgttttt gcagccctgg gctctcctgc
+     3361 tcccgccgct ggggccagtg gacaagcccc tgagcttgct ccttccactg cagacagctc
+     3421 tgtttcgcct gcgccagcaa agaccgagaa gggccccgta gaagcaaagc cagagtgcca
+     3481 ggagacagaa acgaagccag cgccagccga agtcaagacg gtccccaatg acgccacaca
+     3541 gacaaaggag aacgagagca aagcatgatg ggtgaagaga accgagcaaa gatcaaaata
+     3601 aaaagtgaca cagcagcttc accagagcat ttccaacacc acagacacac acacgcacgc
+     3661 acacacacaa acacacatgc acacacacac atctcatttc tctagtgtct tttgccttta
+     3721 aaaaaaacta aacagataaa acatgggaat ctcctttttg taggtttata gaaagggtcc
+     3781 ctttgttgca cactcacttg taagaaaatg agacaaaaag gttaaaccca cagccaaact
+     3841 aggacactcc gttccctgaa accgttaaaa aatcaaacaa aaggacccca aattaagaat
+     3901 ctaggaagct cagaaacgaa atctaggttc aggaagacca cacttggtgt tacccgattg
+     3961 gcacagacca gtttcagaga aatactttca ggcactaaga ctaatcgaat gaacaaagtc
+     4021 cacagtttat ttttatactt tcagtcaagt ttgaactctg taaaacctca taaataagtt
+     4081 ataatttctg ttcactttgt atttgttcag tatgcaaagt gtgtcaccct ttctagctga
+     4141 attcaattcc cacgtagact cttattttat aggacgaatg ccaaattgca gcttctgggg
+     4201 gtagatctca atttgcagta ttcagacttc tttttctttc ttttacattc ttttttcttt
+     4261 ctttctttct gccaactttg ttttccagtg tttacaaggt gacaaatgtt tgactttggt
+     4321 tgtgtttaaa tgtccgtgta aaatagctgc cttttatttt ttaaggtaac aaataccacc
+     4381 tagaggtagg taggatcatc ccacgcttgc tttagcacag gacaacttta caaaacatga
+     4441 ttgtttacag ctgctcttcc cctcttttct gatctgcagt ttttgcctgg gtcccactca
+     4501 ggtgaaaatc catctcattc tggaatggtt ttgcttttga atttttggtt atttttgtgt
+     4561 ttctttgggg gttagaccac tttctgatta gccgccacct gcctgcatct gtgaaaaggg
+     4621 atctgctccc aggcgttctc acccttcttt tgaaggactc cttaggcttt gttgaatgaa
+     4681 gcagagaaga ttgtatagtt ggggctggtc ttggtgaaca cacattatta ccccacacat
+     4741 cccctttgtg tagaaagcca aataaaatct atacatacca tttccttttg agcccagaat
+     4801 ctagatttga gcggaagagc atgtgtgctt cagggaatta gtgtcttttt ttggaaatct
+     4861 gttgaagtaa agtaacatcg gccttctgtt cacttaggca gcatttatag aaacaaaaga
+     4921 agaaagaaac aacctactgt ctggagtcat aacacaactt tcctggattg gaaaccaagt
+     4981 gggggaaaaa atacagaaac tttaaggggg atgggagggg ggggagaagg gaaaagccag
+     5041 ccctttgtat agaaattttg cttttttttc cctcattcta ctttagaact gcaagcttgt
+     5101 gcactgtgga tgcgtgaata ttttagtgtg aaacgtgttt ttgtcatagt attgaaataa
+     5161 aacttcaaca tagtttggtt gtggaaggta tagcagatag ttcagaaaaa atattcagga
+     5221 aacaaaaatc actcaaacgg aatcgaagcc ttttaacaaa gaaaatgaaa tacagatgat
+     5281 gatgatgatg atgaagatga tgctaagtaa acagaaatca gtactccgca tgcgctcctc
+     5341 tcctaaggta caaagcagca agaggttagg gtggcaaggc tgcctctggg tccattctgt
+     5401 gggccactct ccccaacgtt ctgacacttc tgcagtctga tcagtggcga tgctagatta
+     5461 taatttcaaa ctgtgaagaa taatggtctt gtcatttgct caatgtgggg ttatgttgca
+     5521 ttttctcagc tcctggggat ggaaatggag gatcccagaa cacacagccc tggccccttt
+     5581 gattctaggg cctgcacaga tctctggttc aaatgcacag gccctcagaa tagaggaaca
+     5641 tgaagagaga tcttagagca cacagtagaa tgtgagagcc tgggtgtctg agaccgggag
+     5701 ggcccagcag tgaggggcag gctcttctgg tcaccaggct gttcagtgga ctcagttctt
+     5761 catcttgtaa tgtcgatggc tttgccacac caggccaagc ccatgccata ccttgtcaag
+     5821 actgtcaaag tggttgtggt taggtcaaac tggttttggt tctgatggtt aggaagaaac
+     5881 aggtcagccc tcagatcacc tggcccggga cagctgaccc cctagaaccc tggctctgcc
+     5941 attagctagg acctaagact ctgcccacat tttggtctgt tctctcccat tacacatagg
+     6001 tttgtctcag catgcaagag tttttccttt aaaaaaaaaa aaaaaaaaaa aaaaaaagca
+     6061 atgctttctc taaaatcaaa gagggagtca ttttattcca agatgtttta tcttttatgt
+     6121 taagagatca aagcttataa ttttcttttt taatttttga aggagggatc aactccagtt
+     6181 tccaatgtct atgtgtctat gtgtgtatgt gccatacata tgtattcaca tgaagaccgg
+     6241 catggccaag ttctgctgga ggagcactca agtgtgacga gcagggccac tggaccctgc
+     6301 agggctgtgg tgtatatagt gcagctttgg aggtggaact ctattttcac acttttctat
+     6361 ggagccttcc gagtcccagg ttttcacttg aggctgtctg tctggatggc ggttttcaga
+     6421 cctccattaa catccctacc cagcattctg tacttcgggg gccttctctc ttgttataaa
+     6481 actttttacc aagtgaaaca tcgataccac ctttgtttcc attctcactg gtgtaaatac
+     6541 tgagtactaa ctgagaattt tgactttgca ttctgtcgga atacttgtgt tcaataaaaa
+     6601 ttgaaagaaa aaagcta
+//
+

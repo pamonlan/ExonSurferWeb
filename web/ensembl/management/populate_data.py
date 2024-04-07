@@ -53,10 +53,10 @@ def populate_gene_table(specie):
 
     # Get the gene table from the specie database
     table_name = "gene"
-    col_names = ["gene_id", "strand", "source", "end", "start",
+    col_names = ["gene_id", "strand", "source", "end", "start","seqname",
                     "gene_biotype", "gene_id", "gene_name", "feature"]
     df = get_table(table_name, col_names, conn_pyensembl)
-    df.columns = ["gene_id", "strand", "source", "end", "start",
+    df.columns = ["gene_id", "strand", "source", "end", "start","seqname",
                     "gene_biotype", "gene_id", "gene_name", "feature"]
     # Add the species column
     df["species"] = specie.lower()
@@ -110,14 +110,14 @@ def populate_transcript_table(specie):
     #Insert the data in the local database
     # Check if data already exists in the database
     if pd.read_sql(f"SELECT * FROM {table_name_local} WHERE species='{specie.lower()}' LIMIT 1", con=create_engine()).shape[0] > 0:
-        print(f"Error: The data for {specie} already exists in the transcript database", flush=True)
+        print(f"[+] Warning: The data for {specie} already exists in the transcript database", flush=True)
     else:
         try:
             df.to_sql(name=table_name_local, if_exists="append", con=create_engine(), index=False)
         except IntegrityError:
-            print("Error: The data already exists in the database")
+            print("[+] Warning: The data already exists in the database")
         else:
-            print("The data was inserted in the database")
+            print("[+] The data was inserted in the database")
             update_pk(table_name_local)
 
 
@@ -127,6 +127,6 @@ def main():
     in the local database.
     """
 
-    for specie in ["Rattus_norvegicus", "Mus_musculus","Homo_sapiens"]:
+    for specie in ["Rattus_norvegicus", "Mus_musculus","Homo_sapiens", "Drosophila_melanogaster", "Danio_rerio","Arabidopsis_thaliana", "Oryza_sativa"]:
         populate_gene_table(specie)
         populate_transcript_table(specie)

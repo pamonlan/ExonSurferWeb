@@ -15,14 +15,9 @@ class GeneFileForm(forms.ModelForm):
             label='Species',
             max_length=100)
         
-
-        self.fields['gene_symbol'] = forms.CharField(
-            label='Gene Symbol',
-            max_length=100,
-        )
     
     ### Data From DB###
     class Meta:
         model = PrimerConfig
-        exclude = ['id', ]
+        exclude = ['id', 'primer_gc_clamp','primer_max_poly_x','primer_max_end_gc','primer_wt_gc_percent_gt','primer_wt_gc_percent_lt']
     

@@ -1,0 +1,29 @@
+.btn-outline-primary {
+    color: #355C8E;
+    background-color: transparent;
+    border-color: #355C8E;
+  }
+  
+  .btn-outline-primary:hover {
+    color: #fff;
+    background-color: #355C8E;
+    border-color: #355C8E;
+  }
+  
+  .btn-outline-primary:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.5);
+  }
+  
+  .btn-outline-primary:active {
+    color: #fff;
+    background-color: #355C8E;
+    border-color: #355C8E;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  }
+  
+  .btn-outline-primary:disabled, .btn-outline-primary.disabled {
+    color: #355C8E;
+    background-color: transparent;
+    border-color: #355C8E;
+  }
+  

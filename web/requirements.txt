@@ -23,18 +23,20 @@ openpyxl==3.1.1
 pandas==1.4
 platformdirs==2.4.0
 plotly==5.13.0
-primer3-py==0.6.1
+primer3-py==1.2.0
 progressbar33==2.4
 psycopg2==2.9.5
 pyensembl==2.2.4
 pylint==2.13.9
 python-dateutil==2.8.2
 pytz==2022.7.1
+rq==1.13.0
 regex==2022.10.31
 requests==2.27.1
 serializable==0.2.1
 simplejson==3.18.3
 six==1.16.0
+scikit-learn==0.24.2
 SQLAlchemy==1.4.47
 sqlparse==0.4.3
 tenacity==8.2.1
@@ -46,3 +48,4 @@ typing_extensions==4.1.1
 urllib3==1.26.14
 wrapt==1.14.1
 biopython==1.79
+XlsxWriter==3.1.0

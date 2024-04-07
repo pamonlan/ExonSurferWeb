@@ -57,8 +57,14 @@
         <div class = "col-xl">
 
           <table cellspacing="10" cellpadding="2" border="0">
-            <tbody><tr>
-            <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ pair.num }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}" target="_blank">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+            <tbody>
+            <tr>
+              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ pair.num }}:</b></td>
+            </tr>
+            <tr>
+              <td colspan="5">
+                <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}" class="btn btn-outline-primary btn-sm btn-block" target="_blank">View Primer Pair and Sequence Details</a>
+              </td>
             </tr>
             <tr>
               <td align="left"> <a href="{% url 'download_pair' session_slug=identifier pair=pair.pair_num %}"><b>Download as Excel</b></a></td>
@@ -142,6 +148,12 @@
       {%else%}
       <h2>No result has been achieved with the selected parameters.</h2>
       {%endif%}
+
+      {% if user.is_superuser %}
+        <!-- Display content for superusers -->
+        <a href="{% url 'download_session_command' session_slug=identifier %}" class="btn btn-primary btn-block" style="background-color: #355C8E; width: 100%" >Download Command File</a>
+      {% endif %}
+
     </div>
 
 
@@ -162,7 +174,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.5.7/shim.min.js"></script>
   
   {%if identifier%}
-
+  
     <script>
       $(document).ready(function() {
           // Setup - add a text input to each footer cell
@@ -203,6 +215,10 @@
                   .search( this.value )
                   .draw();
           } );
+              // Add a custom button
+    var customButtonHtml = '<button onclick="window.open(\'{% url "results_table" session_slug=session_slug %}\', \'_blank\', \'fullscreen=yes\');" class="dt-button buttons-csv buttons-html5">View Results Table</button>';
+    $(customButtonHtml).insertBefore($('#example_wrapper div.dt-buttons'));
+
       } );
 
               

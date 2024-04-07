@@ -20,7 +20,11 @@ def build_specie_path_db(specie):
     species_db = {
         "Rattus_norvegicus": "/home/app/web/Data/pyensembl/mRatBN7.2/ensembl108/Rattus_norvegicus.mRatBN7.2.108.gtf.db",
         "Homo_sapiens": "/home/app/web/Data/pyensembl/GRCh38/ensembl108/Homo_sapiens.GRCh38.108.gtf.db",
-        "Mus_musculus": "/home/app/web/Data/pyensembl/GRCm39/ensembl108/Mus_musculus.GRCm39.108.gtf.db"
+        "Mus_musculus": "/home/app/web/Data/pyensembl/GRCm39/ensembl108/Mus_musculus.GRCm39.108.gtf.db",
+        "Drosophila_melanogaster": "/home/app/web/Data/pyensembl/BDGP6.32/ensembl108/Drosophila_melanogaster.BDGP6.32.108.gtf.db",
+        "Danio_rerio": "/home/app/web/Data/pyensembl/GRCz11/ensembl108/Danio_rerio.GRCz11.108.gtf.db",
+        "Arabidopsis_thaliana": "/home/app/web/Data/pyensembl/TAIR10/ensembl57/Arabidopsis_thaliana.TAIR10.57.gtf.db",
+        "Oryza_sativa": "/home/app/web/Data/pyensembl/IRGSP-1.0/ensembl57/Oryza_sativa.IRGSP-1.0.57.gtf.db"
     }
     return species_db[specie]
 

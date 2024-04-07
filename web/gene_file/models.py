@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 import os
 from primerblast.models import Session
@@ -15,6 +16,7 @@ class GeneFile(models.Model):
         print("[+] Creating GeneFile instance", flush=True)
         self.set_session(session)
         self.file = file
+        self.save()
         self.set_file_type()
         self.set_name()
         self.set_sequence()
@@ -29,17 +31,25 @@ class GeneFile(models.Model):
     
     def set_file_type(self):
         """
-        Given a file, returns the file type based on its extension.
+        Determines the file type based on its content.
         """
-        _, extension = os.path.splitext(self.file.name)
-        if extension.lower() == ".gb" or extension.lower() == ".gbk":
-            file_type = "GeneBank"
-        elif extension.lower() == ".fasta" or extension.lower() == ".fa":
-            file_type = "Fasta"
-        else:
-            file_type = None
-        self.file_type = file_type
-        self.save()
+        print("[+] Determining file type", flush=True)
+        print("[+] File path: ", self.file.path, flush=True)
+        
+        with open(self.file.path, 'r') as file:
+            for line in file:
+                line = line.strip()  # Remove leading/trailing whitespace
+                if line:  # Check if line is not empty
+                    if line.startswith('>'):
+                        self.file_type = "Fasta"
+                    elif line.startswith('LOCUS'):
+                        self.file_type = "GeneBank"
+                    else:
+                        self.file_type = "Unknown"
+                    break  # Exit the loop after determining the file type
+
+        self.save()  # Assuming there's a save method to update the object
+
 
 
     def set_name(self):
@@ -88,7 +98,7 @@ class GeneFile(models.Model):
 
     file = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
     file_name = models.CharField(max_length=255)
-    file_type = models.CharField(max_length=50)
+    file_type = models.CharField(max_length=50, default="Unknown")
     upload_date = models.DateTimeField(auto_now_add=True)
     sequence = models.TextField(blank=True)
     session_id = models.ForeignKey(Session, on_delete=models.CASCADE)

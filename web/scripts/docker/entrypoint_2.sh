@@ -3,8 +3,6 @@
 #
 export PYENSEMBL_CACHE_DIR=/home/app/web/Data/
 export EXONSURFER_CACHE_DIR=/home/app/web/Data/
-export DEBUG=0
-export REDIS_URL='redis://redis/0'
 #!/bin/sh
 
 if [ "$DATABASE" = "postgres" ]

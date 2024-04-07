@@ -29,4 +29,7 @@ urlpatterns = [
     path('gene_file/', include('gene_file.urls')),
     path('django-rq/', include('django_rq.urls')),
     path('download-log-file/', views.download_log_file, name='download_log_file'),
+    path('django-log-file/', views.download_django_log_file, name='django_log_file'),
+    path('faq/', views.faq, name = "faq"),
+
 ]

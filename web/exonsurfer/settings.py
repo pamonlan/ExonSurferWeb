@@ -55,15 +55,15 @@ INSTALLED_APPS = [
 if "REDIS_URL" in os.environ:
     RQ_QUEUES = {
         'default': {
-            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0').strip(),
             'DEFAULT_TIMEOUT': 60*60*3,
         },
         'high': {
-            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0').strip(),
             'DEFAULT_TIMEOUT': 60*60*3,
         },
         'low': {
-            'URL': os.getenv('REDIS_URL', 'redis://redis/0'),
+            'URL': os.getenv('REDIS_URL', 'redis://redis/0').strip(),
             'DEFAULT_TIMEOUT': 60*60*3,
         }
 
@@ -207,3 +207,63 @@ DATA_DIR = os.path.join(BASE_DIR, "Data")
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+## Add Django Logging
+LOG_FILE_PATH = os.path.join(DATA_DIR, 'django.log')
+if not os.path.exists(LOG_FILE_PATH):
+    with open(LOG_FILE_PATH, 'w'):
+        pass
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': LOG_FILE_PATH,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+    ## Add Django Logging for primerblast, and the other apps
+    'loggers': {
+        'primerblast': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+    'loggers': {
+        'exonsurfer': {
+            'handlers': ['file'],   
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+    'loggers': {
+        'ensembl': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+    'loggers': {
+        'primer_queue': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+}
+}

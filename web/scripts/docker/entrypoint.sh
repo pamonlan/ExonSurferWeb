@@ -19,9 +19,9 @@ python3 /home/app/web/manage.py collectstatic --noinput
 echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('root', 'user@mail.com', 'calicoelectronico!')" | python3 /home/app/web/manage.py shell
 export PYENSEMBL_CACHE_DIR=/home/app/web/Data/
 export EXONSURFER_CACHE_DIR=/home/app/web/Data/
-export DEBUG=0
 
-pyensembl install --release 108 --species homo_sapiens mouse rat
+pyensembl install --release 108 --species homo_sapiens mouse rat zebrafish fly
+pyensembl install --release 57 --species rice arabidopsis
 exon_surfer.py -db True
 echo "from ensembl.management.populate_data import main; main()" | python3 /home/app/web/manage.py shell
 

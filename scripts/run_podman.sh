@@ -1,6 +1,9 @@
-podman-compose -t 1podfw -f docker-compose.prod.yml up -d --build
-podman-compose -f docker-compose.prod.yml exec web python3 manage.py flush --noinput
-podman-compose -f docker-compose.prod.yml exec web python3 manage.py makemigrations --noinput
-podman-compose -f docker-compose.prod.yml exec web python3 manage.py migrate --noinput
-podman-compose -f docker-compose.prod.yml exec web python3 manage.py collectstatic --noinput
+podman pull docker.io/redis
+podman pull docker.io/postgres
+podman pull docker.io/nginx
+podman pull docker.io/icbi/exonsurfer
+podman login docker.io
+podman pull docker.io/icbi/exonsurfer
+podman-compose -f docker-compose.prod.yml up -d --build
+podman-compose -f docker-compose.prod.yml logs -f
 

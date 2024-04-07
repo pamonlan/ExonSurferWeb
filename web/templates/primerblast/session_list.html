@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static%}
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="text-center">Session List</h2>
+      <hr>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <form method="get" action="{% url 'session_list' %}">
+        <div class="input-group">
+          <input type="text" class="form-control" name="search" placeholder="Search by symbol, species, transcript, or session ID" value="{{ search }}">
+          <span class="input-group-btn">
+            <button type="submit" class="btn btn-secondary">Search</button>
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+    <div class="col-md-12">
+      {% if sessions %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Symbol</th>
+              <th>Species</th>
+              <th>Transcript</th>
+              <th>Date Created</th>
+              <th></th>  <!-- Add a blank column for the download button -->
+              <th></th>  <!-- Add a blank column for the download button -->
+
+            </tr>
+          </thead>
+          <tbody>
+            {% for session in sessions %}
+              <tr>
+                <td>{{ session.session_id }}</td>
+                <td>{{ session.symbol }}</td>
+                <td>{{ session.species }}</td>
+                <td>{{ session.transcript }}</td>
+                <td>{{ session.created_at }}</td>
+                <td>
+                  <a href="{% url 'download_session_files' session_slug=session.session_id %}" class="btn btn-primary btn-sm">Download</a>
+                </td>
+                <td>
+                  <a href="{% url 'session_update' pk=session.pk %}" class="btn btn-primary btn-sm">Update</a>
+                </td>
+                <!--Button to view the sessions-->
+                <td>
+                  <a href="{% url 'runprimerblast' session_slug=session.session_id %}" class="btn btn-primary btn-sm">View</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="pagination justify-content-center">
+        {% if is_paginated %}
+            <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                <a href="?page=1{% if search %}&search={{ search }}{% endif %}" class="page-link">&laquo; first</a>
+                </li>
+                <li class="page-item">
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="page-link">&lsaquo; prev</a>
+                </li>
+            {% endif %}
+
+            {% for page in page_obj.paginator.page_range %}
+                {% if page_obj.number == page %}
+                <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                {% else %}
+                <li class="page-item"><a href="?page={{ page }}{% if search %}&search={{ search }}{% endif %}" class="page-link">{{ page }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="page-link">next &rsaquo;</a>
+                </li>
+                <li class="page-item">
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}" class="page-link">last &raquo;</a>
+                </li>
+            {% endif %}
+            </ul>
+        {% endif %}
+        </div>
+
+      {% else %}
+        <p>No sessions found.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -3,6 +3,9 @@ version: '3.7'
 services:
   redis:
     image: redis
+    restart: unless-stopped
+    expose:
+      - 6379
      
   web:
     build:
@@ -18,6 +21,7 @@ services:
       - ./.env.prod
     depends_on:
       - db
+      - redis
 
   rq_high:
     build:
@@ -33,6 +37,7 @@ services:
     depends_on:
       - web
       - db
+      - redis
     entrypoint: ["/home/app/web/entrypoint_2.sh"]
 
   rq_low:
@@ -49,6 +54,7 @@ services:
     depends_on:
       - web
       - db
+      - redis
     entrypoint: ["/home/app/web/entrypoint_2.sh"]
 
   nginx:

@@ -6,19 +6,23 @@
 
 {% block header %}
 
-<!-- Main jumbotron for a primary marketing message or call to action -->
 <div class="jumbotron">
   <div class="container">
-
-
-    <h1 class="display-3" align="center"><b>ExonSurfer</b></h1>
-    <p align="center">A Web-tool for Exon-specific Primer Design</p>
+    <div class="row d-flex align-items-center">
+      <div class="col-md-4">
+        <img src="{% static 'media/ES.png' %}" alt="ExonSurfer Logo" class="img-fluid">
+      </div>
+      <div class="col-md-8">
+        <h1 class="display-3"><b>ExonSurfer</b></h1>
+        <p>A web-tool for exon-specific primer design</p>
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock header %}
 
 {% block body %}
-
 <div class="container">
   <!-- About ExonSurfer -->
   <div class="row gy-5">
@@ -39,102 +43,81 @@
           </div>  
         {% endif %}
         <p><h2><strong>About ExonSurfer</p></h2></strong>
-      <p align="left">ExonSurfer is a web-tool for designing high-specificity exon junction binding transcript primers for qPCR, using the Ensembl database and the blastn algorithm. It combines all the steps of transcript-specific primer design, such as target selection to exclude other transcripts of the same gene, avoiding common polymorphic regions, and enables specificity and self-complementarity verification. </p>
+      <p align="left">ExonSurfer is a web-tool for designing high-specificity exon junction binding transcript primers for qPCR, using the Ensembl database and the blastn algorithm. It combines all the steps of transcript-specific primer design, such as target selection to exclude other transcripts of the same gene, avoiding common polymorphic regions, and enables specificity and self-complementarity verification.</p>
       <p align="left">ExonSurfer simplifies the primer design process, while providing the user with a variety of options to customize the design to best suit their needs. In conclusion, this tool ensures high specificity and low non-specific binding of the primers, making ExonSurfer an essential tool for transcript-specific detection.</p>
-    </div>
-  </div>
-</div>
+    </div><!-- /.col-lg -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
+
+<!-- ... -->
 
 <div class="container">
   <!-- Example row of columns -->
   <div class="row gy-5">
-
     <div class="w-100" style="padding-top: 6%;"></div>
-    <div class="col-lg">
-      <h2><strong>Design Primers</strong></h2>
-      <p align="left">Create now your primers for your favorite species and gene using ExonSurfer.</p>
-      <p align="left">The program offers fast and accurate primer design, with user specified parameters like primer size, GC content, etc, and a user-friendly web interface to setup search options and visualize results.</p>
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-group">
-          <div class="form-group">
-            <p><label for="species">Select Species</label></p>
-            <select name="species" id="selectSpecies">
-              <option name="species" value="homo_sapiens"><i>Homo sapiens</i></option>
-              <option name="species" value="mus_musculus"><i>Mus musculus</i></option>
-              <option name="species" value="rattus_norvegicus"><i>Rattus norvegicus</i></option>
-            </select>
-          </div>
-          <div id="speciesInfo">
-            <div class="form-group" id="homo_sapiens" style="display: block;">
-              <label for="symbol">Select Human Gene Symbol</label>
-              <select class="chosen" style="width:350px;" name="human_symbol" data-placeholder="Write a human gene..."> 
-                  <option value=""></option>
-                  {% for value,key in form.human_symbol.field.choices %}
-                      <option name="human_symbol" value="{{value}}">{{key}}</option>
-                  {%endfor%}
-              </select>
-            </div>
-            <div class="form-group" id="rattus_norvegicus" style="display: none;">
-              <label for="symbol">Select Rat Gene Name</label>
-              <select class="chosen" style="width:350px;" name="rat_symbol" data-placeholder="Write a rat gene..."> 
-                  <option value=""></option>
-                {% for value,key in form.rat_symbol.field.choices %}
-                    <option name="rat_symbol" value="{{value}}">{{key}}</option>
-                {%endfor%}
-              </select>
-            </div>
-            <div class="form-group" id="mus_musculus" style="display: none;">
-              <label for="symbol">Select Mouse Gene Symbol</label>
-              <select class="chosen"  style="width:350px;" name="mouse_symbol" data-placeholder="Write a mouse gene..."> 
-                <option value=""></option> 
-                {% for value,key in form.mouse_symbol.field.choices %}
-                    <option name="mouse_symbol" value="{{value}}">{{key}}</option>
-                {%endfor%}
-              </select>
+      <div class="col-lg d-flex flex-column">
+        <h2><strong>Design Primers</strong></h2>
+        <p align="left">Create primers for your favorite species and gene using ExonSurfer's user-friendly interface and customizable parameters.</p>
+       <!-- Design Primers Form -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Form content -->
+
+            <div class="form-group">
+                <div class="form-group">
+                    <p><label for="selectSpecies">Select species</label></p>
+                    <select name="species" id="selectSpecies" class="form-control">
+                        <option value="homo_sapiens">Homo sapiens</option>
+                        <option value="mus_musculus">Mus musculus</option>
+                        <option value="rattus_norvegicus">Rattus norvegicus</option>
+                        <option value="drosophila_melanogaster">Drosophila melanogaster</option>
+                        <option value="arabidopsis_thaliana">Arabidopsis thaliana</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="gene_field">Gene Symbol</label>
+                    <input type="text" class="form-control" name="gene_field" placeholder="Enter gene symbol" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="use_masked_genomes" id="use_masked_genomes">
+                        <label class="form-check-label" for="use_masked_genomes">
+                            Select SNP-Masked Genome
+                        </label>
+                    </div>
+                </div>
             </div>
 
-          </div><!-- /speciesInfo -->
-          <button type="submit" style="background-color: #355C8E; border-color:#355C8E" class="btn btn-primary btn-block">Submit Analysis</button>
-        </div><!-- /form-group -->
-      </form>
-    </div> <!-- /col-lg-4 -->
-  </div><!-- /row -->
-</div><!-- /container -->
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" style="background-color: #355C8E; border-color:#355C8E">
+                Select Transcript & Primer Parameters
+            </button>
+        </form>
 
-  <!-- New row witht he upload options-->
-  <div class="container">
-    <div class="row gy-5">
-      <div class="w-100" style="padding-top: 6%;"></div>
-      <div class="col-lg-12">
-        <h2><strong>Upload Your Own Transcript Files</strong></h2>
-        <p align="left">ExonSurfer supports the use of custom transcript information for primer design. If your gene or transcript of interest is not available in the Ensembl database, you can upload your own FASTA or GenBank file to create primers using ExonSurfer. Ensure that the files you upload contain accurate and complete sequence information, as this will impact the primer design results.</p>
-      </div><!-- /col-lg-12 -->
-  
-      <div class="col-lg">
-        <h3><strong>Upload a Sequence File</strong></h3>
-        <p align="left">Upload your own GenBank or Fasta file to use with ExonSurfer.</p>
-        
+   
+      </div> <!-- /col-lg-6 -->
+
+      <div class="col-lg d-flex flex-column">
+        <h2><strong>Upload Custom Transcript Files</strong></h2>
+        <p align="left">ExonSurfer supports custom transcript information. Upload your own FASTA or GenBank file if your gene or transcript isn't available in the Ensembl database.</p>
+        <!-- Button 2 -->
+        <div class="mt-auto"> <!-- Add "mt-auto" class to push the button to the bottom -->
           <a href="{% url 'primerblast_upload'%}" style="background-color: #355C8E; border-color:#355C8E" class="btn btn-primary btn-block">Upload</a>
-      </div> <!-- /col-lg-4 -->
-    </div> <!-- /row -->
-  </div><!-- /container -->
-  
+        </div>
+      </div> <!-- /col-lg-6 -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
 
   <div class="container">
     <div class="row gy-5">
       <div class="w-100" style="padding-top: 6%;"></div>
       <div class="col-lg-12">
-        <h2><strong>Citing ExonSurfer</strong></h2>
-        <p align="left">If you use ExonSurfer to generate primers for your research study, please cite the tool using the following reference:</p>
-        <blockquote>
-          Monfort-Lanzas, P., & Rusu, E. C. (2023). ExonSurfer: A Web-tool to Design Primers at Exon–Exon Junctions. In 10th Gene Quantification Event 2023 qPCR dPCR & NGS (Po-54). Freising-Weihenstephan, School of Life Sciences, Technical University of Munich, Weihenstephan, Germany.
-        </blockquote>
+        <h2><strong>ExonSurfer: Code Availability and Usage</strong></h2>
+        <p align="left">ExonSurfer is not only a versatile web-tool for generating primers but also a Python package accessible for integration into various research projects. For those interested in incorporating ExonSurfer into their workflow, the package is available at <a href="https://github.com/CrisRu95/ExonSurfer/tree/main">https://github.com/CrisRu95/ExonSurfer/tree/main</a>. Additionally, the web-tool interface can be built locally using Docker, offering greater flexibility and customization. Detailed instructions and all necessary resources for this setup can be found in the repository at <a href="https://github.com/pamonlan/ExonSurferWeb">https://github.com/pamonlan/ExonSurferWeb</a>.</p>
       </div><!-- /col-lg-4 -->
     </div><!-- /row -->
   </div><!-- /container -->
-  
-
 
 
 {% endblock body %}

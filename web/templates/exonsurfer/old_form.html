@@ -1,0 +1,86 @@
+ <!-- Design Primers Form -->
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <!-- Form content -->
+            
+          <div class="form-group">
+            <div class="form-group">
+              <p><label for="species">Select species</label></p>
+              <select name="species" id="selectSpecies">
+                <option name="species" value="homo_sapiens"><i>Homo sapiens</i></option>
+                <option name="species" value="mus_musculus"><i>Mus musculus</i></option>
+                <option name="species" value="rattus_norvegicus"><i>Rattus norvegicus</i></option>
+                <option name="species" value="drosophila_melanogaster"><i>Drosophila melanogaster</i></option>
+                <option name="species" value="arabidopsis_thaliana"><i>Arabidopsis thaliana</i></option>
+              </select>
+            </div>
+            <div id="speciesInfo">
+              <div class="form-group" id="homo_sapiens" style="display: block;">
+                <label for="symbol">Select human gene symbol</label>
+                <select class="chosen" style="width:350px;" name="human_symbol" data-placeholder="Write a human gene..."> 
+                    <option value=""></option>
+                    {% for value,key in form.human_symbol.field.choices %}
+                        <option name="human_symbol" value="{{value}}">{{key}}</option>
+                    {%endfor%}
+                </select>
+
+                <!-- Boolen radio buttom to choose masked genome-->
+                <div class="form-group">
+                  <p style="padding: 5px;">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="True" name="use_masked_genomes" id="use_masked_genomes" checked>
+                      <label class="form-check-label" for="flexCheckChecked">
+                        Select SNP-Masked <i>Homo sapiens</i> Genome 
+                      </label>
+                    </div>
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-group" id="rattus_norvegicus" style="display: none;">
+                <label for="symbol">Select rat gene symbol</label>
+                <select class="chosen" style="width:350px;" name="rat_symbol" data-placeholder="Write a rat gene..."> 
+                    <option value=""></option>
+                  {% for value,key in form.rat_symbol.field.choices %}
+                      <option name="rat_symbol" value="{{value}}">{{key}}</option>
+                  {%endfor%}
+                </select>
+              </div>
+
+              <div class="form-group" id="mus_musculus" style="display: none;">
+                <label for="symbol">Select mouse gene symbol</label>
+                <select class="chosen"  style="width:350px;" name="mouse_symbol" data-placeholder="Write a mouse gene..."> 
+                  <option value=""></option> 
+                  {% for value,key in form.mouse_symbol.field.choices %}
+                      <option name="mouse_symbol" value="{{value}}">{{key}}</option>
+                  {%endfor%}
+                </select>
+              </div>
+
+              <div class="form-group" id="drosophila_melanogaster" style="display: none;">
+                <label for="symbol">Select fruit fly gene symbol</label>
+                <select class="chosen" style="width:350px;" name="fly_symbol" data-placeholder="Write a fruit fly gene..."> 
+                  <option value=""></option>
+                  {% for value,key in form.fly_symbol.field.choices %}
+                      <option name="fly_symbol" value="{{value}}">{{key}}</option>
+                  {%endfor%}
+                </select>
+              </div>
+
+              <div class="form-group" id="arabidopsis_thaliana" style="display: none;">
+                <label for="symbol">Select arabidopsis gene symbol</label>
+                <select class="chosen" style="width:350px;" name="arabidopsis_symbol" data-placeholder="Write an arabidopsis gene..."> 
+                  <option value=""></option>
+                  {% for value,key in form.arabidopsis_symbol.field.choices %}
+                      <option name="arabidopsis_symbol" value="{{value}}">{{key}}</option>
+                  {%endfor%}
+                </select>
+              </div>
+
+            </div><!-- /speciesInfo -->
+          </div><!-- /form-group -->
+          <!-- Button 1 -->
+          <div class="mt-auto"> <!-- Add "mt-auto" class to push the button to the bottom -->
+            <button type="submit" style="background-color: #355C8E; border-color:#355C8E" class="btn btn-primary btn-block">Select Transcript & Primer Parameters</button>
+          </div>
+        </form>

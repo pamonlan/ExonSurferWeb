@@ -6,6 +6,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 import pandas as pd
 import numpy as np
+from ensembl.models import Transcript
 from ExonSurfer import exonsurfer
 from ExonSurfer import exonsurfer_fromfile
 
@@ -82,6 +83,7 @@ class PrimerConfig(models.Model):
         for attr in self.__dict__:
             if attr.startswith("primer_"):
                 if getattr(self, attr) != getattr(other, attr):
+                    print("[+] ¡¡¡Sessions not equal!!!")
                     print(attr, getattr(self, attr), getattr(other, attr))
                     b=False
         return b
@@ -99,7 +101,9 @@ class PrimerConfig(models.Model):
             PrimerConfig object
         """
         primer_config = self
-        primer_junction_design = dict["primer_junction_design"]
+        primer_config.primer_junction_design = dict["primer_junction_design"]
+        primer_config.primer_min_3_overlap = dict["primer_min_3_overlap"]
+        primer_config.primer_min_5_overlap = dict["primer_min_5_overlap"]
         primer_config.primer_pairs_number = dict["primer_pairs_number"]
         primer_config.primer_opt_size = dict["primer_opt_size"]
         primer_config.primer_min_size = dict["primer_min_size"]
@@ -111,6 +115,7 @@ class PrimerConfig(models.Model):
         primer_config.primer_min_gc = dict["primer_min_gc"]
         primer_config.primer_max_gc = dict["primer_max_gc"]
         primer_config.primer_product_size_min = dict["primer_product_size_min"]
+        primer_config.primer_product_size_opt = dict["primer_product_size_opt"]
         primer_config.primer_product_size_max = dict["primer_product_size_max"]
         primer_config.primer_product_opt_tm = dict["primer_product_opt_tm"]
         primer_config.primer_product_min_tm = dict["primer_product_min_tm"]
@@ -135,6 +140,7 @@ class PrimerConfig(models.Model):
         str
             Junction design
         """
+        print("primer_junction_design", self.primer_junction_design,flush=True)
         if self.primer_junction_design == "spann_junction":
             iDesign = 1
         else:
@@ -148,7 +154,9 @@ class PrimerConfig(models.Model):
     primer_min_size = models.IntegerField(default=18)
     primer_max_size = models.IntegerField(default=27)
     #Primer Junction Dessign
-    primer_junction_design = models.TextField(default="exon_exon_junction")
+    primer_junction_design = models.CharField(max_length=100)
+    primer_min_3_overlap = models.IntegerField(default=5)
+    primer_min_5_overlap = models.IntegerField(default=6)
     #Primer Tm
     primer_opt_tm = models.FloatField(default=60)
     primer_min_tm = models.FloatField(default=57)
@@ -170,9 +178,16 @@ class PrimerConfig(models.Model):
     primer_salt_monovalent = models.FloatField(default=50)
     primer_dntp_conc = models.FloatField(default=0.6)
     #Blast Parameters
-    primer_i_cutoff = models.IntegerField(default=70)
-    primer_e_cutoff = models.FloatField(default=0.8)
-    primer_max_sep = models.IntegerField(default=700)
+    primer_i_cutoff = models.IntegerField(default=75)
+    primer_e_cutoff = models.FloatField(default=100)
+    primer_max_sep = models.IntegerField(default=2000)
+ 
+    #Only for Cristina
+    primer_wt_gc_percent_gt = models.FloatField(default=1)
+    primer_wt_gc_percent_lt = models.FloatField(default=1)
+    primer_max_poly_x = models.IntegerField(default=5)
+    primer_gc_clamp = models.IntegerField(default=1)
+    primer_max_end_gc = models.IntegerField(default=4)
 
 
 
@@ -206,8 +221,9 @@ class Session(models.Model):
             print("[+] Running primer design for: ", self.species, self.symbol, self.transcript, "")
             # Run primer design
             if self.from_file:
+                print("[!] ### Running primer design from file ###", flush=True)
                 # Run primer design from file
-                df_blast, df_primers, error_log = exonsurfer_fromfile.CreatePrimers(file = gene_file,
+                df_blast, genomic_blast, df_primers, error_log = exonsurfer_fromfile.CreatePrimers(file = gene_file,
                     species = self.species,
                     design_dict = self.get_design_config(),
                     opt_prod_size = self.get_opt_prod_size(),
@@ -216,9 +232,12 @@ class Session(models.Model):
                     max_sep=self.get_max_sep(),
                     NPRIMERS=self.get_nprimers(),
                     d_option=self.get_primer_junction_design(),
+                    min_3_overlap = self.get_primer_min_3_overlap(), 
+                    min_5_overlap = self.get_primer_min_5_overlap(),
                     save_files=False)
+
             else:
-                df_blast, df_primers, error_log = exonsurfer.CreatePrimers(gene = self.symbol, 
+                df_blast, genomic_blast, df_primers, error_log = exonsurfer.CreatePrimers(gene = self.symbol, 
                                     transcripts = self.get_transcript(), 
                                     species = self.species,
                                     design_dict = self.get_design_config(),
@@ -228,8 +247,12 @@ class Session(models.Model):
                                     max_sep=self.get_max_sep(),
                                     NPRIMERS=self.get_nprimers(),
                                     d_option=self.get_primer_junction_design(),
+                                    min_3_overlap = self.get_primer_min_3_overlap(), 
+                                    min_5_overlap = self.get_primer_min_5_overlap(),
                                     save_files=False)
                                 
+            #Print the How we call the CreatePrimers function
+            print(f"Calls: exonsurfer.CreatePrimers(gene = {self.symbol}, transcripts = {self.get_transcript()}, species = {self.species}, design_dict = {self.get_design_config()}, opt_prod_size = {self.get_opt_prod_size()}, e_value = {self.get_e_value()}, i_cutoff={self.get_i_cutoff()}, max_sep={self.get_max_sep()}, NPRIMERS={self.get_nprimers()}, d_option={self.get_primer_junction_design()}, min_3_overlap = {self.get_primer_min_3_overlap()}, min_5_overlap = {self.get_primer_min_5_overlap()}, save_files=False)")                     
             print("[!] Print df_primers",flush=True)
             print(df_primers)
             # Check if the primer design has been successful
@@ -239,7 +262,7 @@ class Session(models.Model):
             if not (df_primers is None):
                 print("[!] Primer design successful")
                 #Save the results in the DB
-                result = Result.create_result(self, df_blast, df_primers)
+                result = Result.create_result(self, df_blast, df_primers, genomic_blast)
                 self.set_run()
                 # Create a new column with the pair_num
                 df_primers["pair_num"] = df_primers.index
@@ -250,9 +273,41 @@ class Session(models.Model):
             print("[!] ### Session already run, getting results ###", flush=True)
             df_primers = Result.objects.get(session_id=self).get_primer_file()
             df_blast = Result.objects.get(session_id=self).get_blast_file()
+            genomic_blast = Result.objects.get(session_id=self).get_genomic_blast_file()
             error_log = None
-        return df_blast, df_primers, error_log
+        return df_blast, genomic_blast, df_primers, error_log 
     
+    def get_call_command(self):
+        """
+        Method to get the call command
+        Returns
+        -------
+        str
+            Call command
+        """
+        call_command = f"exonsurfer.CreatePrimers(gene = '{self.symbol}', transcripts = {self.get_transcript()}, species = '{self.species}', design_dict = {self.get_design_config()}, opt_prod_size = {self.get_opt_prod_size()}, e_value = {self.get_e_value()}, i_cutoff={self.get_i_cutoff()}, max_sep={self.get_max_sep()}, NPRIMERS={self.get_nprimers()}, d_option={self.get_primer_junction_design()}, min_3_overlap = {self.get_primer_min_3_overlap()}, min_5_overlap = {self.get_primer_min_5_overlap()}, save_files=False)"
+        return call_command
+
+    def get_run_parameters(self):
+        """
+        Method to obtain a dictionary with the run parameters
+        """
+        primer_config = self.get_design_config()
+
+        for key, value in (("gene", self.symbol),
+                           ("transcripts", self.transcript),
+                           ("species", self.species),
+                           ("opt_prod_size", self.get_opt_prod_size()),
+                           ("e_value", self.get_e_value()),
+                           ("i_cutoff", self.get_i_cutoff()),
+                           ("max_sep", self.get_max_sep()),
+                           ("NPRIMERS", self.get_nprimers()),
+                           ("d_option", self.get_primer_junction_design()),
+                           ("min_3_overlap", self.get_primer_min_3_overlap()),
+                           ("min_5_overlap", self.get_primer_min_5_overlap())):
+            primer_config[key] = value
+        
+        return primer_config
 
     def get_session_data_path(self):
         """
@@ -264,6 +319,26 @@ class Session(models.Model):
         """
         return os.path.join(settings.DATA_DIR, self.session_id)
 
+    def get_primer_min_3_overlap(self):
+        """
+        Method to get the primer 3' overlap
+        Returns
+        -------
+        int
+            Primer 3' overlap
+        """
+        return self.primer_config.primer_min_3_overlap
+    
+    def get_primer_min_5_overlap(self):
+        """
+        Method to get the primer 5' overlap
+        Returns
+        -------
+        int
+            Primer 5' overlap
+        """
+        return self.primer_config.primer_min_5_overlap
+    
     def get_transcript(self):
             """
             Method to get the transcript
@@ -284,6 +359,17 @@ class Session(models.Model):
             else:
                 return eval(self.transcript)
 
+    def get_session_url(self):
+        """
+        Method to get the session url
+        Returns
+        -------
+        str
+            Session url
+        """
+        session_link = f"https://exonsurfer.i-med.ac.at/design/primerblast/{self.session_id}/"
+        return session_link
+    
     def get_e_value(self):
         return self.primer_config.primer_e_cutoff
 
@@ -298,6 +384,16 @@ class Session(models.Model):
               
     def get_primer_junction_design(self):
         return self.primer_config.get_primer_junction_design()
+    
+    def get_number_of_transcripts_for_gene(self):
+        """
+        Function to obtain the number of transcripts for the gene.
+        """
+        gene_name = self.symbol
+        species = self.species
+        n_transcripts = Transcript.objects.filter(gene_name=gene_name, species=species, transcript_biotype="protein_coding").count()
+        return n_transcripts
+    
     def remove_temporal(self):
         """
         Method to remove session and session files
@@ -335,7 +431,9 @@ class Session(models.Model):
         session.species = species
         session.symbol = symbol
         session.transcript = transcript
+        session.set_n_transcript()
         session.save()
+
         return session
     
     def set_run(self):
@@ -359,6 +457,13 @@ class Session(models.Model):
         self.from_file = True
         self.save()
         
+    def set_n_transcript(self):
+        """
+        Method to set the number of transcripts
+        """
+        self.n_transcript = self.get_number_of_transcripts_for_gene()
+        self.save()
+
     def get_opt_prod_size(self):
         """
         Method to get the optimal product size
@@ -398,6 +503,12 @@ class Session(models.Model):
             'PRIMER_SALT_DIVALENT': config.primer_salt_divalent,
             'PRIMER_SALT_MONOVALENT': config.primer_salt_monovalent,
             'PRIMER_DNTP_CONC': config.primer_dntp_conc,
+            # not shown to user
+            'PRIMER_MAX_POLY_X': config.primer_max_poly_x,
+            'PRIMER_GC_CLAMP': config.primer_gc_clamp,
+            'PRIMER_MAX_END_GC': config.primer_max_end_gc,
+            'PRIMER_WT_GC_PERCENT_GT': config.primer_wt_gc_percent_gt,
+            'PRIMER_WT_GC_PERCENT_LT': config.primer_wt_gc_percent_lt,
             }
         return design_dict
 
@@ -430,6 +541,17 @@ class Session(models.Model):
             primer_pair = None
         return primer_pair
 
+    def update_queue_job_id(self, job):
+        """
+        Method to update the queue job id
+        Parameters
+        ----------
+        job: Job
+            Job object
+        """
+        self.enqueued_job_id = job.id
+        self.save()
+        
     def get_primer_pair_blast(self,primer_pair_id):
         """
         Method to get the primer pair blast
@@ -453,14 +575,16 @@ class Session(models.Model):
             primer_pair = None
         return primer_pair
 
-    session_id = models.UUIDField(default = uuid.uuid4, editable = False, unique = True)
+    session_id = models.UUIDField(default = uuid.uuid4, editable = True, unique = True)
+    enqueued_job_id = models.CharField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     species = models.CharField(max_length=100)
     symbol = models.CharField(max_length=100)
-    transcript = models.CharField(max_length=100)
+    transcript = models.CharField(max_length=1000)
     primer_config = models.ForeignKey('PrimerConfig', on_delete=models.CASCADE, null=True)
     is_run = models.BooleanField(default=False)
     from_file = models.BooleanField(default=False)
+    n_transcript = models.IntegerField(default=0)
 
     
 class Result(models.Model):
@@ -488,6 +612,11 @@ class Result(models.Model):
         self.PrimerFile = ContentFile(df.to_csv())
         self.PrimerFile.name = "primer_%s_%s.csv"%(self.session.symbol,self.session.transcript)
 
+    def set_genomic_blast_file(self, df):
+        self.GenomicBlastFile = ContentFile(df.to_csv())
+        self.GenomicBlastFile.name = "genomic_blast_%s_%s.csv"%(self.session.symbol,self.session.transcript)
+
+
     def get_primer_file(self):
         df = pd.read_csv(self.PrimerFile.path)
         df["other_transcripts"].fillna(False, inplace=True)
@@ -497,7 +626,11 @@ class Result(models.Model):
         df = pd.read_csv(self.BlastFile.path, index_col=0)
         return df
 
-    def create_result(session, df_blast, df_primers):
+    def get_genomic_blast_file(self):
+        df = pd.read_csv(self.GenomicBlastFile.path, index_col=0)
+        return df
+
+    def create_result(session, df_blast, df_primers, genomic_blast):
         """
         Method to create a result
         Parameters
@@ -516,11 +649,13 @@ class Result(models.Model):
         result = Result()
         result.session = session
         result.set_blast_file(df_blast)
+        result.set_genomic_blast_file(genomic_blast)
         result.set_primer_file(df_primers)
         result.save()
         return result
         
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     BlastFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
+    GenomicBlastFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
     PrimerFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
 

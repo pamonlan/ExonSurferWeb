@@ -121,6 +121,7 @@
               {% endfor %}
 
             </div>
+
         <div class="text-center" id="cdna-loading">
 
           <div class="spinner-border" role="status" id="cdna-loading">
@@ -138,6 +139,17 @@
     <div class="row">
       <div class = "col-xl">
         <div id="plotly-container"></div>
+        <div style="display: flex; justify-content: center; align-items: center; margin-top: 10px;">
+
+          <div style="background-color: #4daf4a; width: 40px; height: 40px; margin: 10px;"></div>
+          <p style="margin-top:10px;">Detected transcripts</p>
+
+          <div style="background-color: #999999; width: 40px; height: 40px; margin: 10px;"></div>
+          <p style="margin-top:10px;">Undetected transcripts</p>
+
+          <div style="background-color: #e23f3f; width: 40px; height: 40px; margin: 10px;"></div>
+          <p style="margin-top:10px;"> Targeted exons</p>
+        </div>
         <div class="text-center" id="plot-loading">
           <div class="spinner-border" role="status" id="plot-loading">
             <span class="sr-only">Loading...</span>
@@ -158,7 +170,7 @@
     $('#cdna-loading').show();
 
     // Make AJAX request to the plotly view
-    $.get('{% url "plotly" %}', function(data) {
+    $.get("{% url 'ExonTranscriptView' session_slug=identifier pair=pair %}", function(data) {
       // Hide loading spinner
       // Add plot to container
       $('#plotly-container').html(data);

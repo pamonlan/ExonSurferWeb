@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Session{% endblock %}
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">{{ form.instance.symbol }} - Update Session</div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+              {{ form.session_id.label_tag }}
+              {{ form.session_id }}
+            </div>
+            <div class="form-group">
+              {{ form.symbol.label_tag }}
+              {{ form.symbol }}
+            </div>
+            <div class="form-group">
+              {{ form.blast_file.label_tag }}
+              {{ form.blast_file }}
+            </div>
+            <div class="form-group">
+              {{ form.genomic_blast_file.label_tag }}
+              {{ form.genomic_blast_file }}
+            </div>
+            <div class="form-group">
+              {{ form.primer_file.label_tag }}
+              {{ form.primer_file }}
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary">Update Session</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

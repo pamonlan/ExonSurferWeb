@@ -20,6 +20,23 @@ primers = {
     'R': (120, 130)
 }
 
+def get_specie(specie):
+    """
+    This function takes a specie name and returns the specie object
+    Args:
+        specie [in] (string)   Specie name
+        specie [out] (string)   Specie name
+    """
+    dictSp = { #  cDNA and genomic DNA
+    "homo_sapiens": "homo_sapiens",
+    "homo_sapiens_masked": "homo_sapiens", 
+    "mus_musculus": "mus_musculus", 
+    "rattus_norvegicus": "rattus_norvegicus",
+    "drosophila_melanogaster": "drosophila_melanogaster",
+    "arabidopsis_thaliana":"arabidopsis_thaliana"
+    }
+    return dictSp[specie]
+
 def get_transcripts_exons_dict(gene):
     """
     This function takes a gene object and returns a dictionary of transcript

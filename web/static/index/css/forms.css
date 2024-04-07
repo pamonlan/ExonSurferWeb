@@ -1,10 +1,11 @@
 .field-group {
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
   border-radius: .25rem;
   border: 1px solid black;
   transition: height 0.3s ease;
   overflow: hidden;
-  width: 120%;
+  width: 100%;
+  max-width: 100%; /* optional, to limit the maximum width of the boxes */
 }
 
 .field-group-header {

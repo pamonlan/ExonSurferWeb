@@ -4,17 +4,24 @@
 <div class="container" style="padding-top: 3%">
     <!-- Table with job status information -->
     <div class="w-100" style="padding-top: 6%;"></div>
-    <h2>Job Status Information</h2>
+    <h2 class="center">Job Status Information</h2>
     <hr class="my-4">
-    <table cellspacing="10" cellpadding="2" border="0">
+    <table  cellspacing="10" cellpadding="2" border="0">
         <tbody>
             <tr>
                 <td colspan="2" bgcolor="#CCCCCC"><b>Session Information</b></td>
             </tr>
             <tr>
-                <td align="left"><b>Session ID</b></td>
-                <td>{{ session.session_id }}</td>
+                <td align="left"><b>Session URL</b></td>
+                <td>
+                    <span>
+                        <a href="#" id="sessionUrl" onclick="copyToClipboard(event)">Copy URL</a>
+                        to check results later
+                        <input type="hidden" id="sessionUrlValue" value="{{ session.get_session_url }}">
+                    </span>
+                </td>
             </tr>
+            
             <tr>
                 <td colspan="2" bgcolor="#CCCCCC"><b>Job Information</b></td>
             </tr>
@@ -39,9 +46,26 @@
             {% endif %}
 
             <tr>
-                <td align="left"><b>Time (in seconds)</b></td>
+                <td align="left"><b>Time (s)</b></td>
                 <td>{{ time_difference_seconds|floatformat:0}}</td>
             </tr>
+            {% if job_predicted_time and job.job_status == "running" %}
+             <!-- Add the estimated running time row -->
+            <tr>
+                <td align="left"><b>Estimated time (s)</b></td>
+                <td>{{ job.job_predicted_time|floatformat:0 }}</td>
+            </tr>
+            <!-- Add the progress bar row -->
+            <tr>
+                <td align="left"><b>Progress</b></td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ progress_percentage }}%</div>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
+            <!-- Rest of the existing content -->
             <tr>
                 <td colspan="2" bgcolor="#CCCCCC"><b>Gene Information</b></td>
             </tr>
@@ -61,7 +85,7 @@
                 <td colspan="2" bgcolor="#CCCCCC"><b>Transcript Information</b></td>
             </tr>
             <tr>
-                <td align="left"><b>Transcripts Selected</b></td>
+                <td align="left"><b>Selected transcripts</b></td>
                 <td>{{ transcript }}</td>
             </tr>
             <tr>
@@ -70,6 +94,7 @@
                     <div class="d-flex justify-content-center mt-5">
                         <button type="button" class="btn btn-primary mr-3" id="check_button">Check</button>
                         <a href="{% url 'cancel_job' job_id=job.id %}" class="btn btn-danger">Cancel</a>
+                        <a href="{% url 're_run_job' job_id=job.id %}" class="btn btn-success ml-3">Re-run</a>
                     </div>
                 </td>
             </tr>
@@ -93,6 +118,19 @@
     // Reload the current page when the button is clicked
     location.reload();
   });
+
+  function copyToClipboard(event) {
+    event.preventDefault();
+    var urlField = document.getElementById('sessionUrlValue');
+    var textField = document.createElement('textarea');
+    textField.innerText = urlField.value;
+    document.body.appendChild(textField);
+    textField.select();
+    document.execCommand('copy');
+    textField.remove();
+    alert('Session URL copied to clipboard');
+}
+
 </script>
 
 {% endblock %}

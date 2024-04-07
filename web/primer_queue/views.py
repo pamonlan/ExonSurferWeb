@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.views.generic import (View, CreateView, ListView, DeleteView)
 from .models import PrimerJob
 from ensembl.models import Transcript, Gene
+from primerblast.management.transcript_info import get_specie
 from primerblast.models import Session
 from datetime import datetime
 
@@ -28,7 +29,7 @@ class JobStatusView(View):
             job = PrimerJob.objects.get(session_id=session)
             #Get gene, transcript, species, and primer type
             try:
-                gene = Gene.objects.get(gene_name=session.symbol, species=session.species)
+                gene = Gene.objects.get(gene_name=session.symbol, species=get_specie(session.species))
             except:
                 gene = None
             # Obtain PrimerJob from session
@@ -46,18 +47,34 @@ class JobStatusView(View):
                 return redirect('runprimerblast', session_slug=session_slug)
             else:
                 # Get the job time
-                job_time = job.job_time
+                job_time = job.job_start_time
                 # Get the current time
                 current_time = datetime.now()
-                # Get the time difference
-                time_difference = current_time - job_time.replace(tzinfo=None)
-                # Get the time difference in seconds
-                time_difference_seconds = time_difference.total_seconds()
+                if job_time:
+                    # Get the time difference
+                    time_difference = current_time - job_time.replace(tzinfo=None)
+                    # Get the time difference in seconds
+                    time_difference_seconds = time_difference.total_seconds()
+                    try:
+                        job_predicted_time = job.job_predicted_time
+                        # Get the progress percentage
+                        progress_percentage = (time_difference_seconds/job_predicted_time)*100
+                        # Get the progress percentage rounded to 2 decimal places, and if it is greater than 100, set it to 100
+                        progress_percentage = round(progress_percentage, 2)
+                        if progress_percentage > 100:
+                            progress_percentage = 99
+                    except Exception as error:
+                        print("[!] Error in JobStatusView",flush=True)
+                        print(error)
+                        progress_percentage = 60
+                        job_predicted_time = False
 
                 context = {
                     'session': session,
                     'job': job,
                     'time_difference_seconds': time_difference_seconds,
+                    'progress_percentage': progress_percentage,
+                    'job_predicted_time': round(job_predicted_time, 0),
                 }
                 context["species"] = session.species
                 context["symbol"] = session.symbol
@@ -69,4 +86,9 @@ class JobStatusView(View):
 def cancel_job(request, job_id):
     job = get_object_or_404(PrimerJob, id=job_id)
     job.cancel_job()  # cancel the job
+    return redirect('jobstatus', session_slug=job.session_id.session_id)
+
+def re_run_job(request, job_id):
+    job = get_object_or_404(PrimerJob, id=job_id)
+    job.re_run_job()  # re-run the job
     return redirect('jobstatus', session_slug=job.session_id.session_id)
