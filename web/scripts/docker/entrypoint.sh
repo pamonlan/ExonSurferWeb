@@ -1,5 +1,11 @@
 #!/bin/sh
-#!/bin/sh
+
+if [ "$(id -u)" = "0" ]; then
+    mkdir -p /home/app/web/Data/logs /home/app/web/Data/pyensembl /home/app/web/Data/db /home/app/web/staticfiles /home/app/web/media
+    chown -R nobody:nogroup /home/app/web/Data /home/app/web/staticfiles /home/app/web/media 2>/dev/null || true
+    chmod -R a+rwX /home/app/web/Data /home/app/web/staticfiles /home/app/web/media 2>/dev/null || true
+    exec runuser -u nobody -g nogroup -- "$0" "$@"
+fi
 
 if [ "$DATABASE" = "postgres" ]
 then

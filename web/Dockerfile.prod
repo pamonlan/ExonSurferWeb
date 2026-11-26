@@ -114,5 +114,6 @@ RUN pip install --no-cache-dir numpy==1.24.4 pandas==1.5.3 && \
 # Environment path
 ENV PATH="$HOME/.local/bin:$APP_HOME/bin:/usr/local/bin:$PATH"
 
-USER nobody
+# Privileges are dropped to nobody:nogroup in entrypoint.sh / entrypoint_2.sh
+# after ensuring mounted volumes (/home/app/web/Data, staticfiles) are writable.
 ENTRYPOINT ["/home/app/web//entrypoint.sh"]

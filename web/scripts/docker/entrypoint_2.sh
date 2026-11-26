@@ -1,9 +1,11 @@
 #!/bin/sh
 
-#
+if [ "$(id -u)" = "0" ]; then
+    exec runuser -u nobody -g nogroup -- "$0" "$@"
+fi
+
 export PYENSEMBL_CACHE_DIR=/home/app/web/Data/
 export EXONSURFER_CACHE_DIR=/home/app/web/Data/
-#!/bin/sh
 
 if [ "$DATABASE" = "postgres" ]
 then
