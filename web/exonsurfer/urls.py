@@ -23,13 +23,19 @@ urlpatterns = [
     path('privacy/', views.privacy, name = "privacy"),
     path('imprint/', views.imprint, name = "imprint"),
     path('references/', views.references, name = "references"),
+    path('news/', views.news, name = "news"),
     path('admin/', admin.site.urls),
     path('design/', include('primerblast.urls')),
     path('primer_queue/', include('primer_queue.urls')),
     path('gene_file/', include('gene_file.urls')),
     path('django-rq/', include('django_rq.urls')),
+    path('qpcr/', include('qpcr_analysis.urls')),
+    path('', include('ensembl.urls')),
     path('download-log-file/', views.download_log_file, name='download_log_file'),
     path('django-log-file/', views.download_django_log_file, name='django_log_file'),
     path('faq/', views.faq, name = "faq"),
+    path('charts/', include('charts.urls')),
+    # Add django-allauth urls
+    path('accounts/', include('allauth.urls')),
 
 ]

@@ -10,16 +10,28 @@
     </div>
 
     <div class="row">
-    <div class="col-md-12">
-        <h4>Which organisms are supported by ExonSurfer?</h4>
-        <p>Currently, ExonSurfer supports Homo sapiens, Rattus norvegicus and Mus musculus. These come from Ensembl’s release 108 and correspond to GenBank Assembly IDs:</p>
-        <ul>
-        <li>Homo sapiens: GCA_000001405.28</li>
-        <li>Rattus norvegicus: GCF_015227675.2</li>
-        <li>Mus musculus: GCF_000001635.26</li>
-        </ul>
+        <div class="col-md-12">
+            <h4>Which organisms are supported by ExonSurfer?</h4>
+            <p>Currently, ExonSurfer supports 14 organisms across Ensembl release 108, Ensembl Plants release 57, and WormBase ParaSite WBPS19:</p>
+            <ul>
+                <li><i>Homo sapiens</i> (GRCh38 — Ensembl release 108)</li>
+                <li><i>Mus musculus</i> (GRCm39 — Ensembl release 108)</li>
+                <li><i>Rattus norvegicus</i> (mRatBN7.2 — Ensembl release 108)</li>
+                <li><i>Danio rerio</i> (GRCz11 — Ensembl release 108)</li>
+                <li><i>Drosophila melanogaster</i> (BDGP6.32 — Ensembl release 108)</li>
+                <li><i>Xenopus tropicalis</i> (UCB_Xtro_10.0 — Ensembl release 108)</li>
+                <li><i>Caenorhabditis elegans</i> (WBcel235 — Ensembl release 108)</li>
+                <li><i>Saccharomyces cerevisiae</i> (R64-1-1 — Ensembl release 108)</li>
+                <li><i>Arabidopsis thaliana</i> (TAIR10 — Ensembl Plants release 57)</li>
+                <li><i>Oryza sativa</i> (IRGSP-1.0 — Ensembl Plants release 57)</li>
+                <li><i>Solanum lycopersicum</i> (SL3.0 — Ensembl Plants release 57)</li>
+                <li><i>Zea mays</i> (Zm-B73-REFERENCE-NAM-5.0 — Ensembl Plants release 57)</li>
+                <li><i>Glycine max</i> (Glycine_max_v2.1 — Ensembl Plants release 57)</li>
+                <li><i>Litomosoides sigmodontis</i> (nLs.2.1 — WormBase ParaSite WBPS19)</li>
+            </ul>
+        </div>
     </div>
-    </div>
+
 
     <div class="row">
     <div class="col-md-12">
@@ -75,7 +87,7 @@
     <div class="col-md-12">
         <h4>Is ExonSurfer free to use?</h4>
         <p>Yes, ExonSurfer is a free online tool available to anyone with an internet connection. We ask you to cite our software:</p>
-        <p>Monfort-Lanzas, P., & Rusu, E. C. (2023). ExonSurfer: A Web-tool to Design Primers at Exon–Exon Junctions. In 10th Gene Quantification Event 2023 qPCR dPCR & NGS (Po-54). Freising-Weihenstephan, School of Life Sciences, Technical University of Munich, Weihenstephan, Germany. </p>
+        <p>Monfort-Lanzas, P., Rusu, E.C., Parrakova, L. et al. ExonSurfer: a web-tool to design primers at exon–exon junctions. BMC Genomics 25, 594 (2024). https://doi.org/10.1186/s12864-024-10456-2</p>
     </div>
     </div>
 
@@ -83,11 +95,11 @@
     <div class="col-md-12">
       <h4>How long does it take for ExonSurfer to design primers?</h4>
       <p>You can choose the "Number of primer pairs to design" in the Primer Parameters section to best suit your time requirements. The mean time for designing the different number of primer pairs are:</p>
-      <ul>
-        <li>1500 primer pairs: </li>
-        <li>200 primer pairs</li>
-        <li>50 primer pairs</li>
-      </ul>
+    <ul>
+        {% for primer_count, avg_time in average_times %}
+            <li>{{ primer_count }} primers: {{ avg_time|floatformat:0 }} seconds</li>
+        {% endfor %}
+    </ul>
       <p>These values are constantly updated with the time execution information from new designs.</p>
     </div>
   </div>

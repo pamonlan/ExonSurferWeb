@@ -24,7 +24,12 @@
           <table cellspacing="10" cellpadding="2" border="0">
             <tbody>
             <tr>
-              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ primer_pair.num }} <a href="{% url 'primer_pair_view' session_slug=identifier pair=primer_pair.pair_num %}" target="_blank">(Click here for cDNA and amplicon sequence)</a>:</b></td>
+              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ primer_pair.pair_num }} </td>
+            </tr>
+            <tr>
+              <td colspan="5">
+                <a href="{% url 'primer_pair_view' session_slug=identifier pair=primer_pair.pair_num  %}" class="btn btn-outline-primary btn-sm btn-block" target="_blank">View Primer Pair and Sequence Details</a>
+              </td>
             </tr>
             <tr>
               <td align="left"> <a href="{% url 'download_pair' session_slug=identifier pair=primer_pair.pair_num %}"><b>Download as Excel</b></a></td>

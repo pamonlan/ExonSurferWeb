@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 urlpatterns = [
     #path('select_gene/', views.SelectGeneSpeciesView.as_view(), name="select_gene"),
-    path('primerblast/<str:species>/<str:symbol>/', views.PrimerBlastFormView.as_view(), name="primerblast"),
+    path('primerblast/<str:species>/<str:symbol>/<str:non_coding>', views.PrimerBlastFormView.as_view(), name="primerblast"),
     path('primerblast/<slug:session_slug>/', views.ExonSurferView.as_view(), name="runprimerblast"),
     path('error/<slug:session_slug>/', views.ErrorDesignView.as_view(), name="ed"),
 
@@ -17,7 +17,7 @@ urlpatterns = [
     path('primerblast/off_target_view/<slug:session_slug>/<str:pair>/', views.PrimerPairOffTargetView.as_view(), name="off_target_view"),
     path('json_list/<slug:identifier>/', views.ListJson, name = "results_json"),
 
-    path('exonTranscriptAlone/<str:gene>/<str:species>/', views.ExonTranscriptView_gene_species, name='ExonTranscriptView_gene_species'),
+    path('exonTranscriptAlone/<str:gene>/<str:species>/<str:non_coding>', views.ExonTranscriptView_gene_species, name='ExonTranscriptView_gene_species'),
     path('exonTranscript/<uuid:session_slug>/<str:pair>/', views.ExonTranscriptView, name='ExonTranscriptView'),
 
     path('cdna_html/<slug:session_slug>/<str:pair>/', views.cDNATranscriptView, name="cdna_view"),

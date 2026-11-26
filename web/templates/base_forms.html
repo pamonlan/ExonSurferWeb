@@ -67,6 +67,10 @@
                       <td style="padding: 10px;">{{ form.primer_max_tm }}</td>
                     </tr>
                     <tr>
+                      <td style="padding: 10px;">Maximum difference in Tm</td>
+                      <td style="padding: 10px;">{{ form.primer_pair_max_diff_tm }}</td>
+                    </tr>
+                    <tr>
                       <td style="padding: 10px;">Length (bases)</td>
                       <td style="padding: 10px;">{{ form.primer_min_size}}</td>
                       <td style="padding: 10px;">{{ form.primer_opt_size }}</td>
@@ -129,6 +133,28 @@
                     <tr>
                       <td style="padding: 10px;">Minimum 5' overlap with junction</td>
                       <td style="padding: 10px;">{{ form.primer_min_5_overlap}}</td>
+                    </tr>
+                    <!-- New parameters-->
+                   
+                    <tr>
+                      <td style="padding: 10px;">Maximum self-binding at 3’ end:</td>
+                      <td style="padding: 10px;">{{ form.primer_max_self_end}}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum pair 3’ end complementarity</td>
+                      <td style="padding: 10px;">{{ form.primer_pair_max_compl_end}}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum 5' self complementarity</td>
+                      <td style="padding: 10px;">{{ form.primer_max_self_any}}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum 5' complementarity</td>
+                      <td style="padding: 10px;">{{ form.primer_pair_max_compl_any}}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px;">Maximum hairpin Tm</td>
+                      <td style="padding: 10px;">{{ form.primer_max_hairpin_th}}</td>
                     </tr>
                   </tbody>
                 </table>

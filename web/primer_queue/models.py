@@ -1,18 +1,18 @@
+import uuid
+import pandas as pd
+
 from django.db import models
+from django.utils import timezone
+from django.db.models import F
+
+import django_rq
+from sklearn.linear_model import LinearRegression
+
 from primerblast.models import Session
 from gene_file.models import GeneFile
-import uuid
-import django_rq
-from django.utils import timezone
-import pandas as pd
-import uuid
-import pandas as pd
-from django.db import models
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+
 # Create your models here.
+
 
 class PrimerJob(models.Model):
     """
@@ -146,7 +146,32 @@ class PrimerJob(models.Model):
         Get the running time of the job in seconds
         """
         return (self.job_finish_time - self.job_start_time).total_seconds()
-    
+
+
+    def query_table_data(self):
+        """
+        Method to obtain all jobs run in the queue.
+        Completes the table with the session information
+        as well as the job information.
+        """
+        try:
+            print("[+] Querying jobs", flush=True)
+            
+            # Using select_related to reduce the number of queries to the database
+            job_df = pd.DataFrame(PrimerJob.objects.filter(job_status='complete').values_list(
+            'job_running_time', 'job_queue', 'job_time',
+            'session_id__species','session_id__symbol', 'session_id__transcript',
+            'session_id__primer_config__primer_pairs_number')
+            )
+            job_df.columns = ['job_running_time', 'job_queue', 'job_time', 'species', 'symbol', 'transcript', 'primer_pairs_number']
+            print("[+] Successfully queried jobs", flush=True)
+            return job_df
+
+        except Exception as e:
+            print(f"[-] Error querying jobs: {e}", flush=True)
+            return pd.DataFrame()  # Return an empty DataFrame in case of an error
+
+
 
 
     def get_predicted_time_v2(self):

@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta charset="utf-8">
+      <title>ExonSurfer Dashboard</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+      <link rel="stylesheet" href="{% static 'style.css' %}">
+      <style>
+         .card .value { font-size: 2rem; font-weight: bold; padding: 15px; text-align: center; }
+         .card .title { color: white; padding: 10px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem;}
+         .card.blue .title { background: #007bff; }
+         .card.green .title { background: #28a745; }
+         .card.orange .title { background: #ffc107; color: #333;}
+         .card.red .title { background: #dc3545; }
+         .status-dot { height: 15px; width: 15px; border-radius: 50%; display: inline-block; margin-right: 5px;}
+         .online { background-color: #28a745; }
+         .offline { background-color: #dc3545; }
+         .table .thead .th { color: black; }
+      </style>
+      <style>
+
+         /* FORCE BLACK TEXT ON TABLE */
+         #dataTable tbody td {
+            color: #000000 !important;
+         }
+         
+         #dataTable thead th {
+            color: #000000 !important;
+         }
+      </style>
+   </head>
+
+   <body class="fixed-nav sticky-footer bg-dark" id="page-top">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+         <a class="navbar-brand" href="#">ExonSurfer Admin</a>
+         <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav navbar-sidenav">
+               <li class="nav-item"><a class="nav-link" href="#"><i class="fa fa-fw fa-dashboard"></i> <span class="nav-link-text">Dashboard</span></a></li>
+               <li class="nav-item"><a class="nav-link" href="{% url 'index' %}"><i class="fa fa-fw fa-link"></i> <span class="nav-link-text">Go to Tool</span></a></li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+               <li class="nav-item">
+               </li>
+            </ul>
+         </div>
+      </nav>
+
+      <div class="content-wrapper">
+         <div class="container-fluid">
+            
+            <div class="row mb-3 align-items-center">
+               <div class="col-md-6">
+                  <h1>Dashboard 
+                     <span style="font-size: 0.5em; vertical-align: middle;" class="badge badge-light">
+                        <span class="status-dot {% if system_status == 'Online' %}online{% else %}offline{% endif %}"></span>
+                        System {{ system_status }}
+                     </span>
+                  </h1>
+               </div>
+               <div class="col-md-6 text-right">
+                  <a href="{% url 'export_sessions_csv' %}" class="btn btn-success btn-sm">
+                     <i class="fa fa-download"></i> Export Data
+                  </a>
+               </div>
+            </div>
+
+            <div class="card mb-4">
+               <div class="card-body py-2">
+                  <form method="GET" class="form-inline justify-content-end">
+                     <label class="mr-2">Date Range:</label>
+                     <input type="date" name="start_date" class="form-control form-control-sm mr-2" value="{{ start_date }}">
+                     <input type="date" name="end_date" class="form-control form-control-sm mr-2" value="{{ end_date }}">
+                     
+                     <input class="form-control form-control-sm mr-2" type="text" name="search" placeholder="Search ID/Gene..." value="{{ search }}">
+                     <button class="btn btn-primary btn-sm" type="submit"><i class="fa fa-filter"></i> Filter</button>
+                     <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm ml-2">Reset</a>
+                  </form>
+               </div>
+            </div>
+
+            <div class="row">
+               <div class="col-xl-3 col-sm-6 mb-3">
+                  <div class="card blue h-100">
+                     <div class="title">Total Sessions</div>
+                     <div class="value">{{ total_sessions }}</div>
+                  </div>
+               </div>
+               <div class="col-xl-3 col-sm-6 mb-3">
+                  <div class="card green h-100">
+                     <div class="title">Success Rate</div>
+                     <div class="value">{{ success_rate }}%</div>
+                  </div>
+               </div>
+               <div class="col-xl-3 col-sm-6 mb-3">
+                  <div class="card orange h-100">
+                     <div class="title">Jobs / Day</div>
+                     <div class="value">{{ avg_jobs_day }}</div>
+                  </div>
+               </div>
+               <div class="col-xl-3 col-sm-6 mb-3">
+                  <div class="card red h-100">
+                     <div class="title">Total Errors</div>
+                     <div class="value">{{ error_jobs }}</div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="card mb-3">
+               <div class="card-header"><i class="fa fa-area-chart"></i> Activity (Last 12 Months)</div>
+               <div class="card-body">
+                  <div id="areaChart" style="width:100%; height: 350px"></div>
+               </div>
+            </div>
+
+            <div class="row">
+               <div class="col-lg-8">
+                  <div class="card mb-3">
+                     <div class="card-header"><i class="fa fa-bar-chart"></i> Top 10 Genes</div>
+                     <div class="card-body">
+                        <div id="columnChart" style="width: 100%; height: 300px"></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-lg-4">
+                  <div class="card mb-3">
+                     <div class="card-header"><i class="fa fa-pie-chart"></i> Top 5 Species</div>
+                     <div class="card-body">
+                        <div id="pieChart" style="width: 100%; height: 300px"></div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="card mb-3">
+               <div class="card-header"><i class="fa fa-table"></i> Recent Sessions</div>
+               <div class="card-body">
+                  <div class="table-responsive">
+                     <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                           <tr>
+                              <th>ID</th>
+                              <th>Species</th>
+                              <th>Symbol</th>
+                              <th>Transcript</th>
+                              <th>Date</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {% for session in sessions %}
+                           <tr>
+                              <td>{{ session.session_id }}</td>
+                              <td>{{ session.species|cut:"_"|title }}</td>
+                              <td>{{ session.symbol }}</td>
+                              <td>{{ session.transcript }}</td>
+                              <td>{{ session.created_at|date:"M d, Y" }}</td>
+                           </tr>
+                           {% empty %}
+                           <tr><td colspan="5" class="text-center">No sessions found.</td></tr>
+                           {% endfor %}
+                        </tbody>
+                     </table>
+                     
+                     {% if is_paginated %}
+                     <nav>
+                        <ul class="pagination justify-content-center">
+                           {% if page_obj.has_previous %}
+                              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo;</a></li>
+                           {% else %}
+                              <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                           {% endif %}
+                           
+                           <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                           
+                           {% if page_obj.has_next %}
+                              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&raquo;</a></li>
+                           {% else %}
+                              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                           {% endif %}
+                        </ul>
+                     </nav>
+                     {% endif %}
+                  </div>
+               </div>
+            </div>
+         </div>
+         
+         <footer class="sticky-footer">
+            <div class="container text-center"><small>ExonSurfer Admin v1.3</small></div>
+         </footer>
+      </div>
+      
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+      <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+      <script>
+         var areaChart = new CanvasJS.Chart("areaChart", {
+            animationEnabled: true, theme: "light2",
+            data: [{ type: "splineArea", color: "#007bff", dataPoints: {{ area_data|safe }} }]
+         });
+         areaChart.render();
+
+         var columnChart = new CanvasJS.Chart("columnChart", {
+            animationEnabled: true, theme: "light2",
+            data: [{ type: "column", color: "#28a745", dataPoints: {{ column_data|safe }} }]
+         });
+         columnChart.render();
+
+         var pieChart = new CanvasJS.Chart("pieChart", {
+            animationEnabled: true, theme: "light2",
+            data: [{ type: "doughnut", innerRadius: "60%", dataPoints: {{ pie_data|safe }} }]
+         });
+         pieChart.render();
+      </script>
+   </body>
+</html>

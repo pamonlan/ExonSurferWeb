@@ -6,6 +6,8 @@ from exonsurfer.settings import BASE_DIR
 import psycopg2
 import sys
 import sqlalchemy
+from ensembl.management.species_config import get_db_path
+
 
 params_dic = {
         "host"      : os.environ.get("SQL_HOST", "localhost"),
@@ -16,17 +18,7 @@ params_dic = {
     }
 
 def build_specie_path_db(specie):
-    #Build the path to the specie database
-    species_db = {
-        "Rattus_norvegicus": "/home/app/web/Data/pyensembl/mRatBN7.2/ensembl108/Rattus_norvegicus.mRatBN7.2.108.gtf.db",
-        "Homo_sapiens": "/home/app/web/Data/pyensembl/GRCh38/ensembl108/Homo_sapiens.GRCh38.108.gtf.db",
-        "Mus_musculus": "/home/app/web/Data/pyensembl/GRCm39/ensembl108/Mus_musculus.GRCm39.108.gtf.db",
-        "Drosophila_melanogaster": "/home/app/web/Data/pyensembl/BDGP6.32/ensembl108/Drosophila_melanogaster.BDGP6.32.108.gtf.db",
-        "Danio_rerio": "/home/app/web/Data/pyensembl/GRCz11/ensembl108/Danio_rerio.GRCz11.108.gtf.db",
-        "Arabidopsis_thaliana": "/home/app/web/Data/pyensembl/TAIR10/ensembl57/Arabidopsis_thaliana.TAIR10.57.gtf.db",
-        "Oryza_sativa": "/home/app/web/Data/pyensembl/IRGSP-1.0/ensembl57/Oryza_sativa.IRGSP-1.0.57.gtf.db"
-    }
-    return species_db[specie]
+    return get_db_path(specie)
 
 def connect_pyensembl_db(specie):
     #Connect to the specie database

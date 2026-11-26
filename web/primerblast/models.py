@@ -9,6 +9,10 @@ import numpy as np
 from ensembl.models import Transcript
 from ExonSurfer import exonsurfer
 from ExonSurfer import exonsurfer_fromfile
+from .management.primer_dimer import calculate_min_AG
+from .management import santalucia_dictionaries as d
+from ensembl.management.species_config import get_release
+
 
 # Create your models here.
 data_root = FileSystemStorage(location=settings.DATA_DIR)
@@ -64,6 +68,29 @@ class PrimerConfig(models.Model):
         E-value cutoff from the BLAST search
     primer_max_sep: int
         Maximum separation between the primers for off-targets
+    primer_max_self_end: int
+        Binding between a primer 3’-end and itself
+    primer_pair_max_compl_end: int
+        Binding between a primer 3’-end and its pair
+    primer_max_self_any: int
+        Binding between a primer and itself
+    primer_pair_max_compl_any: int
+        Binding between a primer and its pair
+    primer_max_hairpin_th: int
+        Tendency to form a hairpin, calculated by the thermodynamic approach
+    primer_wt_gc_percent_gt: float
+        Weight of the GC percent greater than the optimal
+    primer_wt_gc_percent_lt: float
+        Weight of the GC percent less than the optimal
+    primer_max_poly_x: int
+        Maximum number of repeated bases
+    primer_gc_clamp: int
+        Number of GCs at the 3’ end of the primer
+    primer_max_end_gc: int
+        Maximum number of GCs at the 3’ end of the primer
+    primer_pair_max_diff_tm: int
+        Maximum difference in melting temperature between the primers of a pair
+    
     Methods
     -------
     """
@@ -126,8 +153,14 @@ class PrimerConfig(models.Model):
         primer_config.primer_i_cutoff = dict["primer_i_cutoff"]
         primer_config.primer_e_cutoff = dict["primer_e_cutoff"]
         primer_config.primer_max_sep = dict["primer_max_sep"]
-
-        
+        #New parameters as per the provided image
+        primer_config.primer_max_self_end = dict["primer_max_self_end"]
+        primer_config.primer_pair_max_compl_end = dict["primer_pair_max_compl_end"]
+        primer_config.primer_max_self_any = dict["primer_max_self_any"]
+        primer_config.primer_pair_max_compl_any = dict["primer_pair_max_compl_any"]
+        primer_config.primer_max_hairpin_th = dict["primer_max_hairpin_th"]
+        primer_config.primer_pair_max_diff_tm = dict["primer_pair_max_diff_tm"]
+        #Only for Cristina
         primer_config.save()
 
         return primer_config
@@ -179,9 +212,17 @@ class PrimerConfig(models.Model):
     primer_dntp_conc = models.FloatField(default=0.6)
     #Blast Parameters
     primer_i_cutoff = models.IntegerField(default=75)
-    primer_e_cutoff = models.FloatField(default=100)
+    primer_e_cutoff = models.FloatField(default=0.8)
     primer_max_sep = models.IntegerField(default=2000)
- 
+    
+    #New parameters as per the provided image
+    primer_max_self_end = models.PositiveIntegerField(default=3,help_text='Binding between a primer 3’-end and itself')
+    primer_pair_max_compl_end = models.PositiveIntegerField(default=3,help_text='Binding between a primer 3’-end and its pair')
+    primer_max_self_any = models.PositiveIntegerField(default=8,help_text='Binding between a primer and itself')
+    primer_pair_max_compl_any = models.PositiveIntegerField(default=8,help_text='Binding between a primer and its pair')
+    primer_max_hairpin_th = models.PositiveIntegerField(default=47,help_text='Tendency to form a hairpin, calculated by the thermodynamic approach')
+    
+    primer_pair_max_diff_tm = models.PositiveIntegerField(default=5,help_text='Maximum difference in melting temperature between the primers of a pair')
     #Only for Cristina
     primer_wt_gc_percent_gt = models.FloatField(default=1)
     primer_wt_gc_percent_lt = models.FloatField(default=1)
@@ -240,6 +281,7 @@ class Session(models.Model):
                 df_blast, genomic_blast, df_primers, error_log = exonsurfer.CreatePrimers(gene = self.symbol, 
                                     transcripts = self.get_transcript(), 
                                     species = self.species,
+                                    release = get_release(self.species),
                                     design_dict = self.get_design_config(),
                                     opt_prod_size = self.get_opt_prod_size(),
                                     e_value = self.get_e_value(),
@@ -251,31 +293,56 @@ class Session(models.Model):
                                     min_5_overlap = self.get_primer_min_5_overlap(),
                                     save_files=False)
                                 
-            #Print the How we call the CreatePrimers function
-            print(f"Calls: exonsurfer.CreatePrimers(gene = {self.symbol}, transcripts = {self.get_transcript()}, species = {self.species}, design_dict = {self.get_design_config()}, opt_prod_size = {self.get_opt_prod_size()}, e_value = {self.get_e_value()}, i_cutoff={self.get_i_cutoff()}, max_sep={self.get_max_sep()}, NPRIMERS={self.get_nprimers()}, d_option={self.get_primer_junction_design()}, min_3_overlap = {self.get_primer_min_3_overlap()}, min_5_overlap = {self.get_primer_min_5_overlap()}, save_files=False)")                     
+            print(f"Calls: exonsurfer.CreatePrimers(...)")                     
             print("[!] Print df_primers",flush=True)
-            print(df_primers)
-            # Check if the primer design has been successful
-            # If not, redirect to error page
-            # Check id df_primers is none
             
             if not (df_primers is None):
                 print("[!] Primer design successful")
-                #Save the results in the DB
+                
+                # =================================================================
+                # INJECT SANTA LUCIA AG CALCULATIONS HERE
+                # =================================================================
+                try:
+                    # Adjust this import path to wherever you saved the refactored script
+                    
+                    print("[+] Calculating Santa Lucia thermodynamic AG values...")
+                    
+                    col_fwd = 'forward' 
+                    col_rev = 'reverse'
+                    
+                    
+                    # Combine all 3 scenarios into the absolute worst-case AG score
+                    df_primers['AG_dimer'] = df_primers.apply(
+                        lambda row: min(
+                            calculate_min_AG(row[col_fwd], row[col_fwd], "", "", d.positional_dict2, True),
+                            calculate_min_AG(row[col_rev], row[col_rev], "", "", d.positional_dict2, True),
+                            calculate_min_AG(row[col_fwd], row[col_rev], "", "", d.positional_dict2, True)
+                        ), 
+                        axis=1
+                    )
+                    print("[+] AG calculations complete.")
+                except Exception as e:
+                    print(f"[!] Warning: Failed to calculate Santa Lucia AG values. Error: {e}")
+                # =================================================================
+
+                # Create a new column with the pair_num (Moved UP before saving to DB)
+                df_primers["pair_num"] = df_primers.index
+
+                # Save the results in the DB
                 result = Result.create_result(self, df_blast, df_primers, genomic_blast)
                 self.set_run()
-                # Create a new column with the pair_num
-                df_primers["pair_num"] = df_primers.index
+                
             else:
                 print("[!] Primer design failed",flush=True)
-                #Redirect to error page indicating the error_log
+                
         else:
             print("[!] ### Session already run, getting results ###", flush=True)
             df_primers = Result.objects.get(session_id=self).get_primer_file()
             df_blast = Result.objects.get(session_id=self).get_blast_file()
             genomic_blast = Result.objects.get(session_id=self).get_genomic_blast_file()
             error_log = None
-        return df_blast, genomic_blast, df_primers, error_log 
+            
+        return df_blast, genomic_blast, df_primers, error_log
     
     def get_call_command(self):
         """
@@ -503,12 +570,20 @@ class Session(models.Model):
             'PRIMER_SALT_DIVALENT': config.primer_salt_divalent,
             'PRIMER_SALT_MONOVALENT': config.primer_salt_monovalent,
             'PRIMER_DNTP_CONC': config.primer_dntp_conc,
+            # New parameters as per the provided image
+            'PRIMER_MAX_SELF_END': config.primer_max_self_end,
+            'PRIMER_PAIR_MAX_COMPL_END': config.primer_pair_max_compl_end,
+            'PRIMER_MAX_SELF_ANY': config.primer_max_self_any,
+            'PRIMER_PAIR_MAX_COMPL_ANY': config.primer_pair_max_compl_any,
+            'PRIMER_MAX_HAIRPIN_TH': config.primer_max_hairpin_th,
+            # Only for Cristina
             # not shown to user
             'PRIMER_MAX_POLY_X': config.primer_max_poly_x,
             'PRIMER_GC_CLAMP': config.primer_gc_clamp,
             'PRIMER_MAX_END_GC': config.primer_max_end_gc,
             'PRIMER_WT_GC_PERCENT_GT': config.primer_wt_gc_percent_gt,
             'PRIMER_WT_GC_PERCENT_LT': config.primer_wt_gc_percent_lt,
+            'PRIMER_PAIR_MAX_DIFF_TM': config.primer_pair_max_diff_tm,
             }
         return design_dict
 
@@ -575,6 +650,13 @@ class Session(models.Model):
             primer_pair = None
         return primer_pair
 
+    def set_non_coding(self):
+        """
+        Method to set the gene as non-coding
+        """
+        self.is_non_coding = True
+        self.save()
+
     session_id = models.UUIDField(default = uuid.uuid4, editable = True, unique = True)
     enqueued_job_id = models.CharField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -585,6 +667,7 @@ class Session(models.Model):
     is_run = models.BooleanField(default=False)
     from_file = models.BooleanField(default=False)
     n_transcript = models.IntegerField(default=0)
+    is_non_coding = models.BooleanField(default=False)
 
     
 class Result(models.Model):
@@ -615,7 +698,6 @@ class Result(models.Model):
     def set_genomic_blast_file(self, df):
         self.GenomicBlastFile = ContentFile(df.to_csv())
         self.GenomicBlastFile.name = "genomic_blast_%s_%s.csv"%(self.session.symbol,self.session.transcript)
-
 
     def get_primer_file(self):
         df = pd.read_csv(self.PrimerFile.path)
@@ -658,4 +740,3 @@ class Result(models.Model):
     BlastFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
     GenomicBlastFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
     PrimerFile = models.FileField(storage=data_root, upload_to=get_session_path, blank=False, null=False, max_length=250)
-

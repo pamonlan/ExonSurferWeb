@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load static%}
@@ -50,74 +49,104 @@
 </div><!-- /.container -->
 
 <!-- ... -->
-
 <div class="container">
-  <!-- Example row of columns -->
   <div class="row gy-5">
     <div class="w-100" style="padding-top: 6%;"></div>
-      <div class="col-lg d-flex flex-column">
-        <h2><strong>Design Primers</strong></h2>
-        <p align="left">Create primers for your favorite species and gene using ExonSurfer's user-friendly interface and customizable parameters.</p>
-       <!-- Design Primers Form -->
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <!-- Form content -->
-
-            <div class="form-group">
-                <div class="form-group">
-                    <p><label for="selectSpecies">Select species</label></p>
-                    <select name="species" id="selectSpecies" class="form-control">
-                        <option value="homo_sapiens">Homo sapiens</option>
-                        <option value="mus_musculus">Mus musculus</option>
-                        <option value="rattus_norvegicus">Rattus norvegicus</option>
-                        <option value="drosophila_melanogaster">Drosophila melanogaster</option>
-                        <option value="arabidopsis_thaliana">Arabidopsis thaliana</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="gene_field">Gene Symbol</label>
-                    <input type="text" class="form-control" name="gene_field" placeholder="Enter gene symbol" required>
-                </div>
-
-                <div class="form-group">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="use_masked_genomes" id="use_masked_genomes">
-                        <label class="form-check-label" for="use_masked_genomes">
-                            Select SNP-Masked Genome
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary" style="background-color: #355C8E; border-color:#355C8E">
-                Select Transcript & Primer Parameters
-            </button>
-        </form>
-
-   
-      </div> <!-- /col-lg-6 -->
-
-      <div class="col-lg d-flex flex-column">
-        <h2><strong>Upload Custom Transcript Files</strong></h2>
-        <p align="left">ExonSurfer supports custom transcript information. Upload your own FASTA or GenBank file if your gene or transcript isn't available in the Ensembl database.</p>
-        <!-- Button 2 -->
-        <div class="mt-auto"> <!-- Add "mt-auto" class to push the button to the bottom -->
-          <a href="{% url 'primerblast_upload'%}" style="background-color: #355C8E; border-color:#355C8E" class="btn btn-primary btn-block">Upload</a>
+    <div class="col-lg d-flex flex-column">
+      <h2><strong>Design Primers</strong></h2>
+      <p align="left">Create primers for your favorite species and gene using ExonSurfer's user-friendly interface and customizable parameters.</p>
+      <!-- Design Primers Form -->
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="selectSpecies">Select species</label>
+          <select name="species" id="selectSpecies" class="form-control">
+            {% for key, cfg in species_config.items %}
+              <option value="{{ key }}">
+                <i>{{ cfg.display_name }}</i> ({{ cfg.assembly }})
+              </option>
+            {% endfor %}
+          </select>
         </div>
-      </div> <!-- /col-lg-6 -->
-  </div><!-- /.row -->
-</div><!-- /.container -->
 
-  <div class="container">
-    <div class="row gy-5">
-      <div class="w-100" style="padding-top: 6%;"></div>
-      <div class="col-lg-12">
-        <h2><strong>ExonSurfer: Code Availability and Usage</strong></h2>
-        <p align="left">ExonSurfer is not only a versatile web-tool for generating primers but also a Python package accessible for integration into various research projects. For those interested in incorporating ExonSurfer into their workflow, the package is available at <a href="https://github.com/CrisRu95/ExonSurfer/tree/main">https://github.com/CrisRu95/ExonSurfer/tree/main</a>. Additionally, the web-tool interface can be built locally using Docker, offering greater flexibility and customization. Detailed instructions and all necessary resources for this setup can be found in the repository at <a href="https://github.com/pamonlan/ExonSurferWeb">https://github.com/pamonlan/ExonSurferWeb</a>.</p>
-      </div><!-- /col-lg-4 -->
-    </div><!-- /row -->
-  </div><!-- /container -->
+        <div id="speciesInfo">
+
+          {% for key, cfg in species_config.items %}
+          <div class="form-group" id="{{ key }}" style="{% if forloop.first %}display: block;{% else %}display: none;{% endif %}">
+
+            <label for="{{ key }}-genes-dropdown">Select {{ cfg.display_name }} gene symbol</label>
+            <select name="{{ cfg.field_name }}"
+                    id="{{ key }}-genes-dropdown"
+                    class="chosen-select form-control"
+                    style="width:350px;"
+                    data-placeholder="Write a {{ cfg.display_name }} gene...">
+            </select>
+
+            {% if key == "homo_sapiens" %}
+            <br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="use_masked_genomes" id="use_masked_genomes" value="True">
+              <label class="form-check-label" for="use_masked_genomes">
+                Select SNP-Masked Genome
+              </label>
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+
+        </div>
+
+        <div class="form-check form-check-inline">
+          <p style="padding: 1%%">
+            <input class="form-check-input" type="checkbox" name="use_non_protein_coding" id="use_non_protein_coding" value="True">
+            <label class="form-check-label" for="use_non_protein_coding">
+              Show also non-coding protein transcripts
+            </label>
+          </p>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-auto">
+          <button type="submit" class="btn btn-primary btn-block" style="background-color: #355C8E; border-color:#355C8E">
+            Select Transcript & Primer Parameters
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-lg d-flex flex-column">
+      <h2><strong>Upload Custom Transcript Files</strong></h2>
+      <p align="left">ExonSurfer supports custom transcript information. Upload your own FASTA or GenBank file if your gene or transcript isn't available in the Ensembl database.</p>
+      <!-- Button -->
+      <div class="mt-auto">
+        <a href="{% url 'primerblast_upload' %}" class="btn btn-primary btn-block" style="background-color: #355C8E; border-color:#355C8E">Upload</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 4rem;">
+    <div class="col-lg-12 text-center" style="background-color: #f8f9fa; padding: 40px; border-radius: 8px;">
+      <h2><strong>Already ran your qPCR?</strong></h2>
+      <p style="font-size: 1.1rem; margin-bottom: 20px;">Run your analysis directly in ExonSurfer to calculate fold changes and summarize your biological replicates.</p>
+      <a href="{% url 'qpcr_analysis:qpcr_analysis' %}" class="btn btn-primary btn-lg" style="background-color: #355C8E; border-color:#355C8E; padding: 10px 40px;">Run qPCR Analysis</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row gy-5">
+    <div class="w-100" style="padding-top: 6%;"></div>
+    <div class="col-lg-12">
+      <h2><strong>ExonSurfer: Code Availability and Usage</strong></h2>
+      <p align="left">ExonSurfer is not only a versatile web-tool for generating primers but also a Python package accessible for integration into various research projects. For those interested in incorporating ExonSurfer into their workflow, the package is available at <a href="https://github.com/CrisRu95/ExonSurfer/tree/main">https://github.com/CrisRu95/ExonSurfer/tree/main</a>. Additionally, the web-tool interface can be built locally using Docker, offering greater flexibility and customization. Detailed instructions and all necessary resources for this setup can be found in the repository at <a href="https://github.com/pamonlan/ExonSurferWeb">https://github.com/pamonlan/ExonSurferWeb</a>.</p>
+      <!-- Citation -->
+      <p align="left">If you use ExonSurfer in your research, please cite the following publication:</p>
+      <p align="left">Monfort-Lanzas, P., Rusu, E.C., Parrakova, L. et al. ExonSurfer: a web-tool to design primers at exon–exon junctions. BMC Genomics 25, 594 (2024). https://doi.org/10.1186/s12864-024-10456-2</p>
+    </div><!-- /col-lg-4 -->
+  </div><!-- /row -->
+</div><!-- /container -->
 
 
 {% endblock body %}
@@ -125,25 +154,70 @@
 
 {% block js %}
 
-<script src="{% static 'index/js/form.js'%}"></script>
+<script src="{% static 'index/js/form.js' %}"></script>
 
 <script type="text/javascript">
-  const selectSpecies = document.querySelector("#selectSpecies");
-  const speciesInfo = document.querySelector("#speciesInfo");
-  const speciesDivs = speciesInfo.children;
+  const selectSpecies = document.getElementById("selectSpecies");
+  const speciesInfo = document.getElementById("speciesInfo");
+  const speciesDivs = Array.from(speciesInfo.getElementsByClassName('form-group'));
+
+  const speciesApiUrls = {
+    {% for key, cfg in species_config.items %}
+    "{{ key }}": "/api/{{ cfg.api_url }}/",
+    {% endfor %}
+  };
+  const loadedSpecies = {};
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function loadData(speciesKey) {
+    if (!speciesKey || loadedSpecies[speciesKey] || !speciesApiUrls[speciesKey]) {
+      return;
+    }
+    loadedSpecies[speciesKey] = true;
+    const selector = '#' + speciesKey + '-genes-dropdown';
+    const url = speciesApiUrls[speciesKey];
+    const $dropdown = $(selector);
+    $dropdown.html('<option selected="selected">Loading genes...</option>').trigger("chosen:updated");
+
+    $.ajax({
+      url: url,
+      success: function(data) {
+        const opts = new Array(data.length + 1);
+        opts[0] = '<option selected="selected">Select a gene</option>';
+        for (let i = 0; i < data.length; i++) {
+          const id = escapeHtml(data[i][0]);
+          const sym = escapeHtml(data[i][1]);
+          opts[i + 1] = `<option value="${id}">Gene symbol: ${sym} | Gene ID: ${id}</option>`;
+        }
+        $dropdown.html(opts.join('')).trigger("chosen:updated");
+      },
+      error: function() {
+        loadedSpecies[speciesKey] = false;
+        console.error('Failed to fetch data from ' + url);
+        $dropdown.html('<option>Error loading data</option>').trigger("chosen:updated");
+      }
+    });
+  }
 
   selectSpecies.addEventListener("change", function() {
-    const selectedValue = selectSpecies.value;
-
-    for (let i = 0; i < speciesDivs.length; i++) {
-      const speciesDiv = speciesDivs[i];
-      if (speciesDiv.id === selectedValue) {
-        speciesDiv.style.display = "block";
-      } else {
-        speciesDiv.style.display = "none";
-      }
-    }
+    const selectedValue = this.value;
+    speciesDivs.forEach(div => {
+      div.style.display = (div.id === selectedValue) ? 'block' : 'none';
+    });
+    loadData(selectedValue);
   });
 
+  $(document).ready(function() {
+    $('.chosen-select').chosen();
+    loadData(selectSpecies.value);
+  });
 </script>
+
 {% endblock js %}

@@ -59,7 +59,7 @@
           <table cellspacing="10" cellpadding="2" border="0">
             <tbody>
             <tr>
-              <td colspan="5" bgcolor="#CCCCCC"><b>Primer Pair {{ pair.num }}:</b></td>
+              <td colspan="5" bgcolor="#CCCCCC", style="width: 100%"><b>Primer Pair {{ pair.num }}:</b></td>
             </tr>
             <tr>
               <td colspan="5">
@@ -81,7 +81,12 @@
               <td align="left"><b>Amplicon Size</b></td>
               <td align="left">{{pair.amplicon_size}}</td>
             </tr>
-
+            {% if user.is_superuser%}
+            <tr>
+              <td align="left"><b>Dimer AG</b></td>
+              <td align="left">{{pair.AG_dimer}}</td>
+            </tr>
+            {% endif %}
             <tr>
               <td align="left"></td>
               <td align="center"><b>Sequence </b><font size="2">(5' <font face="Symbol">-&gt;</font> 3')</font></td>
@@ -104,6 +109,15 @@
               <td align="center"> {{pair.reverse_tm |floatformat:0}} </td>
               <td align="center">{{pair.reverse_gc |floatformat:0}} </td>
             </tr>
+            <!--Check if there difference length amplicons-->
+            {% if pair.amp_noteq_len == 1 or pair.amp_noteq_len == "true" %}
+            <tr class="table-danger"></trclass>
+              <td colspan="5" bgcolor="orangered">
+                Warning: Amplicon sizes are different {{pair.diff_lens_amps}}. Check <a href="{% url 'primer_pair_view' session_slug=identifier pair=pair.pair_num %}" class="alert-link" target="blank">primer pair here</a>.
+              </td>
+            </tr>
+            {%endif%}
+            <!-- Check if there are off-targets -->
             {% if pair.off_targets == 1 %}
             <tr class="table-warning"></trclass>
               <td colspan="5" bgcolor="#CCCCCC">
@@ -111,6 +125,8 @@
               </td>
             </tr>
             {%endif%}
+
+            
             </tbody>
           </table>
 
@@ -172,59 +188,57 @@
   <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/datetime-moment.js"></script>
 	<!--polyfills are needed for this extension for old browsers like IE -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.5.7/shim.min.js"></script>
-  
-  {%if identifier%}
-  
-    <script>
-      $(document).ready(function() {
-          // Setup - add a text input to each footer cell
-          $('#example tfoot th').each( function (i) {
-              var title = $('#example thead th').eq( $(this).index() ).text();
-              $(this).html( '<input type="text" placeholder="'+title+'" data-index="'+i+'" />' );
-          } );
-        
-          // DataTable
-          var table = $('#example').DataTable( {
-            order: [[10, 'desc']],
-            scrollX:        true,
-            scrollCollapse: true,
-            dom: 'B<"clear">lfrtip',
-            buttons: {
+
+{% if identifier %}
+<script>
+  $(document).ready(function() {
+      var identifier = "{{ identifier }}";  // This correctly initializes the JavaScript variable with the Django template variable
+
+      // Setup - add a text input to each footer cell
+      $('#example tfoot th').each(function(i) {
+          var title = $('#example thead th').eq($(this).index()).text();
+          $(this).html('<input type="text" placeholder="' + title + '" data-index="' + i + '" />');
+      });
+
+      // DataTable
+      var table = $('#example').DataTable({
+          order: [[10, 'desc']],
+          scrollX: true,
+          scrollCollapse: true,
+          dom: 'B<"clear">lfrtip',
+          buttons: {
               name: 'primary',
-              buttons: [ 'csv', 'excel', {
-                      text: 'TSV',
-                      extend: 'csvHtml5',
-                      fieldSeparator: '\t',
-                      extension: '.tsv'
-                  }]
-              },
-            "columnDefs": [ {
-                "targets": 0,
-                "data": "0",
-                "render": function ( data, type, row, meta ) {
-                  return '<a href="/design/primerblast/primer_view/{{identifier}}/'+data+'"  target="_blank">'+data+'</a>';
-                }
-              }],
-            "ajax": '{% url "results_json" identifier=identifier %}',
-          } );
-      
-          // Filter event handler
-          $( table.table().container() ).on( 'keyup', 'tfoot input', function () {
-              table
-                  .column( $(this).data('index') )
-                  .search( this.value )
-                  .draw();
-          } );
-              // Add a custom button
-    var customButtonHtml = '<button onclick="window.open(\'{% url "results_table" session_slug=session_slug %}\', \'_blank\', \'fullscreen=yes\');" class="dt-button buttons-csv buttons-html5">View Results Table</button>';
-    $(customButtonHtml).insertBefore($('#example_wrapper div.dt-buttons'));
+              buttons: ['csv', 'excel', {
+                  text: 'TSV',
+                  extend: 'csvHtml5',
+                  fieldSeparator: '\t',
+                  extension: '.tsv'
+              }]
+          },
+          columnDefs: [{
+              targets: 0,
+              data: "0",
+              render: function(data, type, row, meta) {
+                  return '<a href="/design/primerblast/primer_view/' + identifier + '/' + data + '/" target="_blank">' + data + '</a>';
+              }
+          }],
+          ajax: '{% url "results_json" identifier=identifier %}',
+      });
 
-      } );
+      // Filter event handler
+      $(table.table().container()).on('keyup', 'tfoot input', function() {
+          table
+              .column($(this).data('index'))
+              .search(this.value)
+              .draw();
+      });
 
-              
+      // Add a custom button
+      var customButtonHtml = '<button onclick="window.open(\'{% url "results_table" session_slug=identifier %}\', \'_blank\', \'fullscreen=yes\');" class="dt-button buttons-csv buttons-html5">View Results Table</button>';
+      $(customButtonHtml).insertBefore($('#example_wrapper div.dt-buttons'));
+  });
+</script>
+{% endif %}
 
- 
-    </script>
-{%endif%}
 
 {% endblock js %}

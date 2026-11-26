@@ -55,8 +55,8 @@
                   <table style="padding: 10px; text-align: center;">
                     <thead>
                       <tr>
-                        <th style="padding: 10px;">Transcript ID</th>
                         <th style="padding: 10px;">Transcript Name</th>
+                        <th style="padding: 10px;">Transcript ID</th>
                         <th></th>
                         <th style="padding: 10px;">Transcript Biotype</th>
                       </tr>
@@ -72,12 +72,12 @@
                               {% endif %}
 
                               <label class="form-check-label" name="transcript" value='{{transcript.transcript_id }}' for="flexCheckDefault">
-                                {{ transcript.transcript_id }}
+                                {{ transcript.transcript_name }}
                               </label>
                             </div>
                           </td>
 
-                          <td style="padding: 10px;"><a href="{{transcript.get_ensembl_url}}" target="blank"> {{transcript.transcript_name}}</a></td>
+                          <td style="padding: 10px;"><a href="{{transcript.get_ensembl_url}}" target="blank"> {{transcript.transcript_id}}</a></td>
                           <td style="padding: 10px;">{{transcript.transcript_version}}</td>
                           <td style="padding: 10px;">{{transcript.transcript_biotype}}</td>
                         </tr>
@@ -112,7 +112,7 @@
     $('#plot-loading').show();
     
     // Make AJAX request to the plotly view
-    $.get("{% url 'ExonTranscriptView_gene_species' gene=gene species=species %}", function(data) {
+    $.get("{% url 'ExonTranscriptView_gene_species' gene=gene species=species non_coding=non_coding %}", function(data) {
       // Hide loading spinner
       // Add plot to container
       $('#plotly-container').html(data);

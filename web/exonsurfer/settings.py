@@ -24,9 +24,14 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 SECRET_KEY = 'django-insecure--6s0wg_9iouh!u!hi30o7m5k9@m_dyu3p*@83618mi^gvbomd)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get("DEBUG", default=1))
+#DEBUG = int(os.environ.get("DEBUG", default=1))
+DEBUG=False
 
 ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8889', 'http://127.0.0.1:8889', 'https://exonsurfer.i-med.ac.at/',
+    'https://exonsurfer.i-med.ac.at', 'https://www.exonsurfer.i-med.ac.at/']
+
 
 # Application definition
 
@@ -37,17 +42,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'charts.apps.ChartsConfig',
 
     'ensembl',
     'primerblast',
     'primer_queue',
     'gene_file',
+    'qpcr_analysis',
     
     ##Other apps
     'crispy_forms',
     'django_extensions',
     'django_rq',
+    'allauth',
+    'allauth.account',
 ]
+
+LOGIN_REDIRECT_URL = '/'
 
 ## REDIS QUEUE
 ## High priority queue
@@ -107,6 +118,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'exonsurfer.urls'

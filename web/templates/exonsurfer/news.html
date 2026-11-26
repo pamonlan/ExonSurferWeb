@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container" style="padding-top: 3%">
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="text-center">News updates from ExonSurfer</h2>
+        <hr>
+      </div>
+    </div>
+
+  <div class="container py-5">
+    <div class="card shadow">
+      <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #355C8E;">
+        <h4 class="mb-0">
+          <i class="fa fa-newspaper-o mr-2"></i> What's New
+        </h4>
+        <span class="badge badge-light text-dark shadow-sm" style="font-size: 0.9rem;">Current Version: v1.4</span>
+      </div>
+
+      <div class="card-body">
+
+        <!-- v1.4 -->
+        <div class="row">
+          <div class="col-md-2 text-center text-muted">
+            <h5 class="font-weight-bold mb-0">May 2026</h5>
+            <small class="font-weight-bold text-dark">v1.4.0</small>
+          </div>
+
+          <div class="col-md-10 border-left pl-4">
+            <h5 class="font-weight-bold" style="color: #355C8E;">Major Update: 9 New Species &amp; Non-Vertebrate Fixes</h5>
+            <p class="text-secondary">This release greatly expands species coverage, fixes primer design for organisms with non-standard exon ID naming conventions, and centralises all species configuration into a single file.</p>
+
+            <h6 class="font-weight-bold mt-4 text-dark" style="border-bottom: 2px solid #eee; padding-bottom: 5px;">
+              <i class="fa fa-cogs" style="color: #355C8E;"></i> ExonSurfer Core
+            </h6>
+            <ul class="list-unstyled mt-3">
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>9 New Species:</strong>
+                <i>Xenopus tropicalis</i>, <i>Gallus gallus</i>, <i>Sus scrofa</i>, <i>Macaca mulatta</i>,
+                <i>Caenorhabditis elegans</i>, <i>Saccharomyces cerevisiae</i>,
+                <i>Solanum lycopersicum</i>, <i>Zea mays</i>, and <i>Glycine max</i>.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>pyensembl patch:</strong> Registered <i>X. tropicalis</i>, <i>Z. mays</i>, <i>S. lycopersicum</i>, and <i>G. max</i>
+                in pyensembl's species registry, enabling clean gene symbol resolution for these species.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-warning px-2 mr-1 text-white">FIX</span>
+                <strong>Junction key separator:</strong> Changed from <code>"_"</code> to <code>"|"</code> in
+                <code>ensembl.py</code>, <code>chooseTarget.py</code>, and <code>construct_cdna.py</code>.
+                Fixes <code>TypeError: cannot unpack non-iterable NoneType</code> for species whose exon IDs
+                contain underscores (e.g. yeast <code>YFL039C_mRNA-E1</code>, <i>C. elegans</i> <code>ZK617.1a.1.e1</code>).
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-warning px-2 mr-1 text-white">FIX</span>
+                <strong>FASTA line-wrapping:</strong> Chromosome sequence files from Ensembl use 60-character
+                line wrapping. Passing wrapped sequences to Primer3 caused a
+                <code>ValueError: Input line with no '='</code>. Fixed by stripping headers and joining lines
+                on read in <code>construct_cdna.py</code> and <code>ensembl.py</code>.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-warning px-2 mr-1 text-white">FIX</span>
+                <strong>Chromosome existence check:</strong> <code>MASKED_SEQS()</code> was always looking for
+                <code>_1.txt</code> regardless of species, causing spurious re-downloads every run for
+                species with Roman numeral chromosomes (<i>S. cerevisiae</i>, <i>C. elegans</i>).
+                Fixed via a <code>FIRST_CHR_CHECK</code> dict in <code>resources.py</code>.
+              </li>
+            </ul>
+
+            <h6 class="font-weight-bold mt-4 text-dark" style="border-bottom: 2px solid #eee; padding-bottom: 5px;">
+              <i class="fa fa-desktop" style="color: #355C8E;"></i> ExonSurfer Web
+            </h6>
+            <ul class="list-unstyled mt-3">
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>Centralised species config:</strong> All species metadata (display names, assemblies,
+                chromosome lists, API URLs, DB paths) now live in a single
+                <code>species_config.py</code>. Adding a new species requires editing only that file.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-info px-2 mr-1 text-white">IMPROVED</span>
+                <strong>Dynamic species form &amp; dropdown:</strong> The species selector, gene input fields,
+                and JavaScript API calls in <code>index.html</code> are now generated automatically from
+                <code>species_config.py</code> — no more hardcoded HTML per species.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-info px-2 mr-1 text-white">IMPROVED</span>
+                <strong>prepare_species_db.py:</strong> New script to automate BLAST DB and chromosome
+                sequence preparation for any species, with FTP auto-discovery of chromosome files and
+                Zenodo-ready zip output.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>ΔΔCt qPCR Analysis:</strong> New built-in module to perform delta-delta Ct
+                analysis directly from Excel Ct results — no R required. Features include:
+                technical replicate averaging, efficiency-corrected fold change calculation,
+                Welch t-test p-values with significance stars, asymmetric error bars,
+                interactive Plotly bar charts with per-gene subplots, customisable group
+                colours and ordering, and a downloadable results table.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- v1.3 -->
+        <div class="row" style="opacity: 0.8;">
+          <div class="col-md-2 text-center text-muted">
+            <h5 class="font-weight-bold mb-0">Feb 2026</h5>
+            <small>v1.3.0</small>
+          </div>
+          <div class="col-md-10 border-left pl-4">
+            <h5 class="font-weight-bold text-dark">Major Update: New Species &amp; Admin Dashboard</h5>
+            <p class="text-secondary">Introduced support for parasitic worms, improved stability for non-model organisms, and redesigned the administration dashboard.</p>
+
+            <h6 class="font-weight-bold mt-4 text-dark" style="border-bottom: 2px solid #eee; padding-bottom: 5px;">
+              <i class="fa fa-cogs" style="color: #355C8E;"></i> ExonSurfer Core
+            </h6>
+            <ul class="list-unstyled mt-3">
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>New Species Support:</strong> Added <i>Litomosoides sigmodontis</i> (WormBase ParaSite) and custom genome loading logic.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-info px-2 mr-1 text-white">IMPROVED</span>
+                <strong>BLAST Performance:</strong> Optimized ID cleaning logic.
+              </li>
+              <li class="mb-3">
+                <span class="badge badge-pill badge-warning px-2 mr-1 text-white">FIX</span>
+                <strong>Stability Patches:</strong>
+                Fixed <code>UnboundLocalError</code> (no exons found), "Empty DataFrame" crash (dimer filters), and "Unhashable Type" error.
+              </li>
+            </ul>
+
+            <h6 class="font-weight-bold mt-4 text-dark" style="border-bottom: 2px solid #eee; padding-bottom: 5px;">
+              <i class="fa fa-desktop" style="color: #355C8E;"></i> ExonSurfer Web
+            </h6>
+            <ul class="list-unstyled mt-3">
+              <li class="mb-3">
+                <span class="badge badge-pill badge-success px-2 mr-1">NEW</span>
+                <strong>Admin Dashboard 2.0:</strong> Features real-time metrics (Success Rate, Avg Jobs/Day), date-range filtering, and interactive charts.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- v1.2 -->
+        <div class="row text-muted" style="opacity: 0.7;">
+          <div class="col-md-2 text-center">
+            <h5 class="font-weight-bold mb-0">Jan 2024</h5>
+            <small>v1.2.0</small>
+          </div>
+          <div class="col-md-10 border-left pl-4">
+            <h5 class="text-dark">Initial Public Release</h5>
+            <p>Launch of ExonSurfer web tool supporting Human, Mouse, Rat, Zebrafish, Fly, and Rice.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock body %}

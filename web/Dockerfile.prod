@@ -1,144 +1,118 @@
-# pull official base image
-FROM ubuntu:20.04 as builder
+# Stage 1: Builder
+FROM ubuntu:22.04 AS builder
 
-# set work directory
-WORKDIR /usr/src/app
-
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    TZ=Europe/Kiev \
-    PYENSEMBL_CACHE_DIR=/home/app/web/Data
-
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-# install dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    python3.6 python3-pip python3-dev \
-    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev libpq-dev libpq5\
-    git postgresql postgresql-contrib && \
-    rm -rf /var/lib/apt/lists/*
-
-# build and install ExonSurfer.py
-RUN git clone https://github.com/CrisRu95/ExonSurfer.git && \
-    cd ExonSurfer && \
-    pip3 install -r requirements.txt && \
-    python3 setup.py install --user && \
-    cd .. 
-
-
-# install Python dependencies
-COPY requirements.txt .
-RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
-
-# copy project files
-COPY . .
-
-
-
-
-###########
-# FINAL   #
-###########
-
-# final image
-FROM ubuntu:20.04
-
-# set environment variables
-ENV TZ=Europe/Kiev \
-    HOME=/home/app \
-    APP_HOME=/home/app/web \
+ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYENSEMBL_CACHE_DIR=/home/app/web/Data \
-    EXONSURFER_CACHE_DIR=/home/app/web/Data \
-    REDIS_URL='redis://redis:6379/0'
+    TZ=Europe/Kiev
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /build
 
-# install system dependencies
+# Set timezone and base tools
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt-get update && apt-get install --no-install-recommends -y \
+    python3.10 python3.10-dev python3-pip \
+    build-essential autoconf libtool pkg-config gcc g++ \
+    libssl-dev libxml2-dev libcurl4-openssl-dev \
+    libpq-dev git \
+    curl ca-certificates && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Setup Python
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-    python3.8 python3-pip python3.8-dev \
-    build-essential autoconf libtool pkg-config gcc libssl-dev netcat libxml2-dev libcurl4-openssl-dev \
-     git
+# Pre-install numpy and pandas (from binary wheels)
+RUN pip install --no-cache-dir numpy==1.24.4 pandas==1.5.3
 
-# Setup Postgres
-RUN apt-get install --no-install-recommends -y postgresql postgresql-contrib libpq5
-
-# create application directories and user
-RUN mkdir -p /home/app $APP_HOME/ -p $APP_HOME/staticfiles $APP_HOME/Data $APP_HOME/staticfiles/account && \
-    mkdir -p $HOME/.local/lib/python3.6/site-packages && \
-    mkdir -p $HOME/.local/bin && \
-    useradd -u 1000 -U -d $HOME -s /bin/bash app && \
-    chown -R app:app $HOME
-# Create os.path.join(DATA_DIR, 'logs', 'django.log'),
-RUN mkdir -p /home/app/web/Data/logs/ && \
-    touch /home/app/web/Data/logs/django.log && \
-    chown -R app:app /home/app/web/Data/logs/django.log
-
-# set work directory
-WORKDIR $APP_HOME
-
-# copy Python dependencies from builder image
-COPY --from=builder /usr/src/app/wheels /wheels
+# Copy and resolve remaining dependencies (exclude numpy and pandas from requirements.txt)
 COPY requirements.txt .
-RUN pip3 install --no-cache /wheels/*
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
-# Clone the repository and install it
-RUN git clone https://github.com/pamonlan/pyensembl.git /pyensembl && \
-    cd /pyensembl && \
-    python3 setup.py install
-    
-# build and install ExonSurfer.py
+# Clone and build ExonSurfer (pinned commit for reproducible builds and cache invalidation)
 RUN git clone https://github.com/CrisRu95/ExonSurfer.git && \
     cd ExonSurfer && \
-    pip3 install -r requirements.txt && \
-    python3 setup.py install --user && \
-    cd .. 
+    git checkout 2f7e4d1 && \
+    python setup.py bdist_wheel && \
+    cp dist/*.whl /wheels/ && \
+    cd .. && rm -rf ExonSurfer
 
-#COPY ./ExonSurfer/ $APP_HOME/ExonSurfer/
-#RUN echo $(ls $APP_HOME/ExonSurfer)
-#RUN cd $APP_HOME/ExonSurfer/ && python3 ./setup.py install --user
-# copy entrypoint-prod.sh
-COPY ./scripts/docker/entrypoint.sh $APP_HOME
-COPY ./scripts/docker/entrypoint_2.sh $APP_HOME
+# Clone and build pyensembl (uses pyproject.toml, not setup.py)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    git clone https://github.com/pamonlan/pyensembl.git && \
+    cd pyensembl && \
+    pip wheel . --no-deps -w dist/ && \
+    ls dist/pyensembl-*.whl && \
+    rm -f /wheels/pyensembl-*.whl && cp dist/pyensembl-*.whl /wheels/ && \
+    cd .. && rm -rf pyensembl
 
-# copy project
+
+# Stage 2: Final Image
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    TZ=Europe/Kiev \
+    HOME=/home/app \
+    APP_HOME=/home/app/web \
+    PYENSEMBL_CACHE_DIR=/home/app/web/Data \
+    EXONSURFER_CACHE_DIR=/home/app/web/Data \
+    STATICFILES=/home/app/web/staticfiles \
+    MEDIA=/home/app/web/media \
+    REDIS_URL='redis://redis:6379/0'
+
+WORKDIR $APP_HOME
+
+# Set timezone and install system dependencies
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt-get update && apt-get install --no-install-recommends -y \
+    python3.10 python3.10-dev python3-pip \
+    libpq5 libpq-dev \
+    libxml2 libcurl4-openssl-dev \
+    build-essential git \
+    netcat postgresql postgresql-contrib && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create app user and directories
+RUN mkdir -p $APP_HOME/Data/logs && \
+    mkdir -p $APP_HOME/staticfiles && \
+    mkdir -p $APP_HOME/media && \
+    useradd -u 1000 -U -d $HOME -s /bin/bash app && \
+    chown -R app:app /home/app && \
+    chmod -R a+rw /home/app && \
+    chown -R app:app $APP_HOME && \
+    chmod -R a+rw $MEDIA $STATICFILES
+
+# Copy built wheels and install (pyensembl installed --no-deps to preserve requirements.txt pins)
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir --no-index --find-links=/wheels $(ls /wheels/*.whl | grep -v '/pyensembl-') && \
+    pip install --no-cache-dir --no-index --no-deps /wheels/pyensembl-*.whl
+
+# Copy source code
 COPY . $APP_HOME
 
-# set ownership and permissions
-RUN chown -R nobody:nogroup $APP_HOME && \
-    chown -R nobody:nogroup $HOME && \
-    chown -R nobody:nogroup  /home/app/.local && \
-    chown -R nobody:nogroup /home/app/web/Data/logs/django.log && \
-    chmod +x $APP_HOME/entrypoint.sh && \
-    chmod +x $APP_HOME/entrypoint_2.sh && \
-    chmod ugo+rw $APP_HOME/Data
 
-# [Errno 2] No such file or directory: '/home/app/web/Data/logs/django.log'
-RUN mkdir -p /home/app/web/Data/logs/ && \
-    touch /home/app/web/Data/logs/django.log && \
-    chown -R nobody:nogroup /home/app/web/Data/logs/django.log
 
-RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log
-RUN touch /var/log/django.log && chown -R nobody:nogroup /var/log/django.log
-RUN touch /home/app/web/gunicorn-access.log && chown nobody:nogroup /home/app/web/gunicorn-access.log
+# Fix ownership and permissions
+# Move entrypoint scripts to root of APP_HOME
+RUN cp $APP_HOME/scripts/docker/entrypoint.sh $APP_HOME/entrypoint.sh && \
+    cp $APP_HOME/scripts/docker/entrypoint_2.sh $APP_HOME/entrypoint_2.sh && \
+    cp $APP_HOME/scripts/web/DownloadWorm.py $APP_HOME/DownloadWorm.py && \
+    chmod +x $APP_HOME/entrypoint.sh $APP_HOME/entrypoint_2.sh $APP_HOME/DownloadWorm.py && \
+    chown -R nobody:nogroup $APP_HOME
 
-# Add bin path
-# Add bin, /usr/bin and .local/bin to PATH
-ENV PATH="/home/app/.local/bin/:${PATH}"
-ENV PATH="/home/app/web/bin:${PATH}"
-ENV PATH="/usr/bin:${PATH}"
+# Install BLAST binary
+COPY ./bin/blastn /usr/local/bin/blastn
+RUN chmod +x /usr/local/bin/blastn
 
-#Copy local bin/blastn to /home/app/.local/bin/
-COPY ./bin/blastn /home/app/.local/bin/
-RUN chmod +x /home/app/.local/bin/blastn
+RUN pip install --no-cache-dir numpy==1.24.4 pandas==1.5.3 && \
+    python3 -c "from pyensembl import EnsemblRelease, Genome; import pyensembl; print('pyensembl OK:', pyensembl.__file__)"
 
-RUN chmod +x "/home/app/web/entrypoint.sh"
-# switch to app user
+# Environment path
+ENV PATH="$HOME/.local/bin:$APP_HOME/bin:/usr/local/bin:$PATH"
+
 USER nobody
-
-# set entrypoint command
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+ENTRYPOINT ["/home/app/web//entrypoint.sh"]

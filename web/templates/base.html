@@ -27,12 +27,15 @@
     <title>ExonSurfer: A Web-tool for Exon-specific Primer Design</title>
     <link rel="stylesheet" href="{% static 'index/css/custom.css' %}">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
+
     {% block css %}
     {% endblock css %}
   </head>
 
   <body>
-
     <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #355C8E; border-radius: 25px; margin-top: 5px">
       <a class="navbar-brand mr-0 mr-md-2" href="/" aria-label="Bootstrap">
         <!--<img width="40" height="40" src='{% static "media/ES.png" %}' style="position:relative;">-->
@@ -58,6 +61,9 @@
     
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
+            <a class="nav-link" href="{% url 'news' %}">News</a>
+          </li>
+          <li class="nav-item active">
             <a class="nav-link" href="https://github.com/CrisRu95/ExonSurfer/blob/main/man/ExonSurfer_Manual.pdf" target="_blank">Manual</a>
           </li>
           <li class="nav-item active">
@@ -70,6 +76,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'download_all_sessions' %}">Download All</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
           </li>
           {% endif %}
           
@@ -112,12 +121,14 @@
    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.jquery.min.js"></script>
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.5/chosen.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
   <script type="text/javascript">
-  $(".chosen").chosen({width: "100%", max_shown_results: 150,    'placeholder_text_multiple':'Please choose gene ...',});
+  $(".chosen-select").chosen({width: "100%", height: "30%", max_shown_results: 150,    'placeholder_text_multiple':'Please choose gene ...',});
   </script>
 
     {% block js %}
     {% endblock js %}
-
-</body></html>
+</body>
+</html>

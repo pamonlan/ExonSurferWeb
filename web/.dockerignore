@@ -1,0 +1,8 @@
+Data/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.log
+Dockerfile.prod.bak

@@ -53,7 +53,7 @@
               <td align="left"><b>Detected Transcripts</b></td>
               <td align="left">
               {% for transcript in lTranscripts %}
-                <a href="{{transcript.get_ensembl_url}}" target="blank"> {{transcript.transcript_id}}</a>
+                <a href="{{transcript.get_ensembl_url}}" target="blank"> {{transcript.transcript_name}}</a>
               {%endfor%}
               </td>
             </tr>
@@ -91,10 +91,19 @@
               <td align="center"> {{ primer_pair.reverse_tm |floatformat:0 }} </td>
               <td align="center">{{primer_pair.reverse_gc |floatformat:0}} </td>
             </tr>
+            <!--Check if there difference length amplicons-->
+            {% if primer_pair.amp_noteq_len == 1 or primer_pair.amp_noteq_len == "true" %}
+            <tr class="table-danger"></trclass>
+              <td colspan="5" bgcolor="orangered">
+                Warning: Amplicon sizes are different. Check <a href="{% url 'primer_pair_view' session_slug=identifier pair=primer_pair.pair_num %}" class="alert-link" target="blank">primer pair here</a>.
+              </td>
+            </tr>
+            {%endif%}
+            <!-- Check if there are off-targets -->
             {% if primer_pair.off_targets == 1 %}
             <tr class="table-warning"></trclass>
               <td colspan="5" bgcolor="#CCCCCC">
-                Warning possible inespecificities. Check <a href="{% url 'off_target_view' session_slug=identifier pair=primer_pair.pair_num %}" class="alert-link" target="blank">off-target here</a>. 
+                Warning possible inespecificities. Check <a href="{% url 'off_target_view' session_slug=identifier pair=primer_pair.pair_num %}" class="alert-link" target="blank">off-target here</a>.
               </td>
             </tr>
             {%endif%}

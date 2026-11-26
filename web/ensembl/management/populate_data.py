@@ -8,125 +8,214 @@ import psycopg2.extras
 import psycopg2
 import pandas as pd
 
+from ensembl.management.species_config import SPECIES_LIST, get_db_path
+import os
+
 
 def update_pk(table):
     """
-    This function reset the primary key of a table in the local database.
+    Reset the primary key sequence of a table in the local database.
     Args:
-        table [in] (str): Table name
-
+        table [in] (str): Table name (e.g. "ensembl_gene")
     """
     app_name = list(table.split("_"))[0]
-
-    # Get SQL commands from sqlsequencereset
     output = io.StringIO()
     call_command('sqlsequencereset', app_name, stdout=output, no_color=True)
     sql = output.getvalue()
-        
     with connection.cursor() as cursor:
         cursor.execute(sql)
     output.close()
 
 
-
 def populate_gene_table(specie):
     """
-    This function populates the gene table in the local database. Open the
-    specie database and get the gene table. Selecte the columns: gene_id,strand,
-    gene_version,source,end,start,gene_biotype,gene_id,gene_name,feature.
+    Populate the ensembl_gene table from the pyensembl SQLite DB for a species.
 
-    And create the col species with the specie name. Insert the data in the
-    local database.
+    Handles species that lack gene_name (plants, non-vertebrates) by falling
+    back to gene_id as the display name so the web dropdown is never empty.
 
-   
     Args:
-        specie [in] (str): Specie name
+        specie [in] (str): Species key (lowercase, e.g. "solanum_lycopersicum")
     """
-    # Connect to the local database
-    conn_local = connect_local_db()
-
-    # Connect to the PostgreSQL database
-    conn_postgres = connect_local_db()
-
-    # Connect to the specie database
     conn_pyensembl = connect_pyensembl_db(specie)
 
-    # Get the gene table from the specie database
-    table_name = "gene"
-    col_names = ["gene_id", "strand", "source", "end", "start","seqname",
-                    "gene_biotype", "gene_id", "gene_name", "feature"]
-    df = get_table(table_name, col_names, conn_pyensembl)
-    df.columns = ["gene_id", "strand", "source", "end", "start","seqname",
-                    "gene_biotype", "gene_id", "gene_name", "feature"]
-    # Add the species column
+    # Discover which columns actually exist in this species' SQLite gene table
+    cursor = conn_pyensembl.cursor()
+    cursor.execute("PRAGMA table_info(gene)")
+    available_cols = {row[1] for row in cursor.fetchall()}
+
+    wanted_cols = ["gene_id", "strand", "source", "end", "start", "seqname",
+                   "gene_biotype", "gene_name", "feature"]
+    select_cols = [c for c in wanted_cols if c in available_cols]
+
+    df = get_table("gene", select_cols, conn_pyensembl)
+
+    # Ensure all expected columns exist (fill missing ones with None)
+    for col in wanted_cols:
+        if col not in df.columns:
+            df[col] = None
+
+    df = df[wanted_cols]
+
+    # ── Normalise gene_name ───────────────────────────────────────────────────
+    # Plants and non-vertebrates often have no gene symbol — use gene_id instead
+    # so the web dropdown is never empty for these species.
+    df["gene_name"] = (
+        df["gene_name"]
+        .replace("", pd.NA)
+        .fillna(df["gene_id"])
+    )
+
     df["species"] = specie.lower()
 
-    # Local table name
     table_name_local = "ensembl_gene"
 
-    # Copy the data from the local database to the PostgreSQL database
-    # Check if data already exists in the database
-    if pd.read_sql(f"SELECT * FROM {table_name_local} WHERE species='{specie.lower()}' LIMIT 1", con=create_engine()).shape[0] > 0:
-        print(f"Error: The data for {specie} already exists in the gene database", flush=True)
-        print("The data was not inserted in the database", flush=True)
+    if pd.read_sql(
+        f"SELECT * FROM {table_name_local} WHERE species='{specie.lower()}' LIMIT 1",
+        con=create_engine()
+    ).shape[0] > 0:
+        print(f"[+] Warning: The data for {specie} already exists in the gene database", flush=True)
+        print("[+] The data was not inserted in the database", flush=True)
     else:
         try:
-            df.to_sql(name=table_name_local, if_exists="append", con=create_engine(), index=False)
+            df.to_sql(name=table_name_local, if_exists="append",
+                      con=create_engine(), index=False)
         except IntegrityError:
-            print("Error: The data already exists in the database", flush=True)
+            print("[+] Warning: The data already exists in the database", flush=True)
         else:
-            print("The data was inserted in the database")
+            print(f"[+] Gene data inserted for {specie}", flush=True)
             update_pk(table_name_local)
 
 
 def populate_transcript_table(specie):
     """
-    This function populates the transcript table in the local database. Open the
-    specie database and get the transcript table. Selecte the columns:
-    transcript_version, transcript_id, transcript_name, transcript_biotype,
-    gene_id, gene_name.
+    Populate the ensembl_transcript table from the pyensembl SQLite DB.
 
-    Insert the data in the local database.
+    Handles species that lack transcript_name or gene_name (plants,
+    non-vertebrates) by falling back to transcript_id / gene_id respectively.
+
     Args:
-        specie [in] (str): Specie name
+        specie [in] (str): Species key (lowercase, e.g. "solanum_lycopersicum")
     """
-
-    # Connect to the local database
-    conn_local = connect_local_db()
-
-    # Connect to the PostgreSQL database
-    conn_postgres = connect_local_db()
-
-    #Connect to the specie database
     conn_pyensembl = connect_pyensembl_db(specie)
-    #Get the transcript table from the specie database
-    table_name = "transcript"
-    col_names = ["transcript_id", "transcript_name",
-                    "transcript_biotype", "gene_id", "gene_name"]
-    df = get_table(table_name, col_names, conn_pyensembl)
+
+    # Discover available columns
+    cursor = conn_pyensembl.cursor()
+    cursor.execute("PRAGMA table_info(transcript)")
+    available_cols = {row[1] for row in cursor.fetchall()}
+
+    wanted_cols = [
+        "transcript_id",
+        "transcript_name",
+        "transcript_biotype",
+        "gene_id",
+        "gene_name",
+    ]
+    select_cols = [c for c in wanted_cols if c in available_cols]
+
+    df = get_table("transcript", select_cols, conn_pyensembl)
+
+    # Ensure all expected columns exist
+    for col in wanted_cols:
+        if col not in df.columns:
+            df[col] = None
+
+    df = df[wanted_cols]
+
+    # ── Normalise transcript_name ─────────────────────────────────────────────
+    # EnsemblGenomes plant/fungal/nematode GTFs often omit transcript_name.
+    # Fall back to transcript_id so the NOT NULL constraint is never violated.
+    df["transcript_name"] = (
+        df["transcript_name"]
+        .replace("", pd.NA)
+        .fillna(df["transcript_id"])
+    )
+
+    # ── Normalise gene_name ───────────────────────────────────────────────────
+    # Same issue: plants use only gene_id as identifier, no gene symbol.
+    df["gene_name"] = (
+        df["gene_name"]
+        .replace("", pd.NA)
+        .fillna(df["gene_id"])
+    )
+
     df["species"] = specie.lower()
-    #Local_table_name
+
     table_name_local = "ensembl_transcript"
-    #Insert the data in the local database
-    # Check if data already exists in the database
-    if pd.read_sql(f"SELECT * FROM {table_name_local} WHERE species='{specie.lower()}' LIMIT 1", con=create_engine()).shape[0] > 0:
+
+    if pd.read_sql(
+        f"SELECT * FROM {table_name_local} WHERE species='{specie.lower()}' LIMIT 1",
+        con=create_engine()
+    ).shape[0] > 0:
         print(f"[+] Warning: The data for {specie} already exists in the transcript database", flush=True)
     else:
         try:
-            df.to_sql(name=table_name_local, if_exists="append", con=create_engine(), index=False)
+            df.to_sql(
+                name=table_name_local,
+                if_exists="append",
+                con=create_engine(),
+                index=False,
+            )
         except IntegrityError:
-            print("[+] Warning: The data already exists in the database")
+            print("[+] Warning: The data already exists in the database", flush=True)
         else:
-            print("[+] The data was inserted in the database")
+            print(f"[+] Transcript data inserted for {specie}", flush=True)
             update_pk(table_name_local)
+
+
+def populate_housekeeping_genes():
+    """
+    Populate the housekeeping_gene table from a curated TSV file.
+    The TSV file should have the following columns:
+        gene_name, gene_id, match_type, source, source_url, context, rank, dpm, avg_expression
+    """
+    df = pd.read_csv("/home/app/web/Data/HK/combined_hk_genes_top50_ensembl.csv", sep=",")
+
+    table_name_local = "ensembl_housekeepinggene"
+
+    try:
+        df.to_sql(name=table_name_local, if_exists="append",con=create_engine(), index=False)
+    except IntegrityError:
+        print("[+] Warning: The housekeeping gene data already exists in the database", flush=True)
+    else:
+        print(f"[+] Housekeeping gene data inserted", flush=True)
+        update_pk(table_name_local)
 
 
 def main():
     """
-    Function to update gene, mouse, and rat tables
-    in the local database.
+    Populate gene and transcript tables for all species in SPECIES_LIST.
+    Skips species whose GTF DB file has not been built yet (safe to re-run).
     """
+    for specie in SPECIES_LIST:
+        # Skip species whose GTF DB doesn't exist yet in the container
+        try:
+            db_path = get_db_path(specie)
+        except KeyError:
+            print(f"[!] Skipping {specie} — not in species_config", flush=True)
+            continue
 
-    for specie in ["Rattus_norvegicus", "Mus_musculus","Homo_sapiens", "Drosophila_melanogaster", "Danio_rerio","Arabidopsis_thaliana", "Oryza_sativa"]:
+        if not os.path.exists(db_path):
+            print(f"[!] Skipping {specie} — GTF DB not found: {db_path}", flush=True)
+            continue
+
+        print(f"\n[+] Processing {specie}", flush=True)
         populate_gene_table(specie)
         populate_transcript_table(specie)
+
+    print("\n[+] All species processed.", flush=True)
+
+    # --- Housekeeping genes: parked 2026-11-26 ---------------------------------
+    # The housekeeping / reference-gene feature (qPCR normalisation, workstream 2
+    # of ExonSurfer 2.0) is future work. The model and the admin registration stay
+    # so migrations are unaffected; only the population step is disabled, so the
+    # table is simply left empty.
+    #
+    # try:
+    #     populate_housekeeping_genes()
+    # except FileNotFoundError:
+    #     print("[!] Housekeeping gene TSV file not found. Skipping housekeeping gene population.", flush=True)
+    # else:
+    #     print("[+] Housekeeping gene data population complete.", flush=True)
+    print("[i] Housekeeping gene population disabled (feature parked).", flush=True)
+        

@@ -1,4 +1,5 @@
 from ExonSurfer.ensembl import ensembl
+from ensembl.management.species_config import SPECIES_LIST, get_specie
 
 # example test data
 transcripts = {
@@ -20,22 +21,9 @@ primers = {
     'R': (120, 130)
 }
 
-def get_specie(specie):
-    """
-    This function takes a specie name and returns the specie object
-    Args:
-        specie [in] (string)   Specie name
-        specie [out] (string)   Specie name
-    """
-    dictSp = { #  cDNA and genomic DNA
-    "homo_sapiens": "homo_sapiens",
-    "homo_sapiens_masked": "homo_sapiens", 
-    "mus_musculus": "mus_musculus", 
-    "rattus_norvegicus": "rattus_norvegicus",
-    "drosophila_melanogaster": "drosophila_melanogaster",
-    "arabidopsis_thaliana":"arabidopsis_thaliana"
-    }
-    return dictSp[specie]
+lSpecies = SPECIES_LIST
+
+
 
 def get_transcripts_exons_dict(gene):
     """
@@ -50,20 +38,13 @@ def get_transcripts_exons_dict(gene):
     """
     dT = {}
     dE = {}
-    
     # get list of transcripts to iterate
     all_transcripts = ensembl.get_transcript_from_gene(gene)
-
     tcripts = ensembl.get_coding_transcript(all_transcripts)
-    
-
     for tcript in tcripts:
         dT[tcript.id] = ensembl.get_exons_from_transcript(tcript)
-
         for exon in tcript.exons:
             dE[exon.id] = (exon.start, exon.end)
-
-     
     return dT,dE
 
 def get_exon_transcript_information(species = None, symbol=None,release=108, transcript = None):
@@ -77,17 +58,11 @@ def get_exon_transcript_information(species = None, symbol=None,release=108, tra
         transcripts (dictionary): Dictionary with the exons of each transcript
         exons (dictionary): Dictionary with exons positions
     """
-
     data = ensembl.create_ensembl_data(release, 
                                        species)
-
     gene_obj = ensembl.get_gene_by_symbol(symbol, data)
-        
     dT,dE = get_transcripts_exons_dict(gene_obj)
-
     # If transcript are provided, only return the information of that transcript
     if transcript != "ALL":
         dT = {transcript: dT[transcript]}
-
-
     return dT,dE, gene_obj.contig

@@ -1,0 +1,17 @@
+# Secrets / env
+.env*
+
+# Local data & caches
+web/Data/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.log
+
+# Scratch / notebooks / backups
+.ipynb_checkpoints/
+Untitled.ipynb
+Rplots.pdf
+* copy.html
+*.bak

@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block title %}qPCR Analysis — ΔΔCt{% endblock %}
+
+{% block body %}
+<div class="container py-4" style="padding-top: 3%">
+  <h2 class="mb-1">qPCR ΔΔCt Analysis</h2>
+  <p class="text-muted mb-4">Upload your Ct values Excel file to calculate relative expression.</p>
+
+  <!-- ── Step 1: File upload ───────────────────────────────────────────── -->
+  <div class="card mb-3">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+      <span>1 · Upload file</span>
+      <a href="{% url 'qpcr_analysis:download_example' %}" class="btn btn-sm btn-outline-secondary">
+        Download example (.xlsx)
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label">Excel file (.xlsx)</label>
+          <input type="file" id="fileInput" class="form-control" accept=".xlsx,.xls">
+        </div>
+        <div class="col-md-3" id="sheetWrapper" style="display:none">
+          <label class="form-label">Sheet</label>
+          <select id="sheetSelect" class="form-select"></select>
+        </div>
+        <div class="col-md-3" id="groupColWrapper" style="display:none">
+          <label class="form-label">Group column</label>
+          <select id="groupColSelect" class="form-select"></select>
+        </div>
+        <!-- dentro del Step 1 card, después de groupColWrapper -->
+        <div class="col-md-3" id="repColWrapper" style="display:none">
+        <label class="form-label">Biological replicate column <small class="text-muted">(optional)</small></label>
+        <select id="repColSelect" class="form-select">
+            <option value="">— none (already averaged) —</option>
+        </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Gene & group configuration ───────────────────────────── -->
+  <div id="configSection" style="display:none">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">2 · Gene selection</div>
+      <div class="card-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label">Housekeeping / reference gene</label>
+            <select id="refGeneSelect" class="form-select mb-3"></select>
+            <label class="form-label">Target genes <small class="text-muted">(multi-select)</small></label>
+            <div id="geneCheckboxes" class="border rounded p-2" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Reference group (denominator)</label>
+            <select id="refGroupSelect" class="form-select mb-3"></select>
+            <label class="form-label">Group order <small class="text-muted">(drag to reorder)</small></label>
+            <ul id="groupOrder" class="list-group" style="cursor:grab"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Colour map ──────────────────────────────────────────── -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">3 · Group colours</div>
+      <div class="card-body">
+        <div id="colorPickers" class="d-flex flex-wrap gap-3"></div>
+      </div>
+    </div>
+
+    <button id="runBtn" class="btn btn-primary px-4">
+      <span id="runSpinner" class="spinner-border spinner-border-sm me-2" style="display:none"></span>
+      Run analysis
+    </button>
+  </div>
+
+  <!-- ── Results ──────────────────────────────────────────────────────── -->
+  <div id="resultsSection" style="display:none" class="mt-4">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Results</div>
+      <div class="card-body p-0">
+        <div id="plotDiv" style="width:100%;min-height:420px"></div>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Summary table</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped mb-0" id="summaryTable">
+            <thead class="table-dark">
+              <tr>
+                <th>Gene</th><th>Group</th><th>Fold change</th>
+                <th>SD (ΔCt)</th><th>Range (±SD)</th><th>p-value</th><th>Sig.</th><th>n</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span>Methods paragraph (copy-ready for manuscripts)</span>
+        <button type="button" id="copyMethodsBtn" class="btn btn-sm btn-outline-secondary">Copy</button>
+      </div>
+      <div class="card-body">
+        <p id="methodsParagraph" class="mb-0" style="font-size:0.95rem;line-height:1.6"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorAlert" class="alert alert-danger mt-3" style="display:none"></div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+
+<!-- SortableJS CDN (tiny, no extra deps) -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<!-- Plotly CDN -->
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────
+const state = {
+  fileData: null,      // base64 or we just resend the File object
+  sheets: [],
+  numericCols: [],
+  groupCols: [],
+  groups: [],
+  colors: {},
+};
+
+// Default colour palette for up to 8 groups
+const DEFAULT_COLORS = [
+  "#808080","#000000","#e41a1c","#377eb8",
+  "#4daf4a","#984ea3","#ff7f00","#a65628",
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById("errorAlert");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+function clearError() {
+  document.getElementById("errorAlert").style.display = "none";
+}
+function buildFormData(extra = {}) {
+  const fd = new FormData();
+  fd.append("file", document.getElementById("fileInput").files[0]);
+  fd.append("sheet", document.getElementById("sheetSelect").value);
+  fd.append("group_col", document.getElementById("groupColSelect").value);
+  Object.entries(extra).forEach(([k, v]) => {
+    if (Array.isArray(v)) v.forEach(item => fd.append(k, item));
+    else fd.append(k, v);
+  });
+  fd.append("csrfmiddlewaretoken", getCookie("csrftoken"));
+  return fd;
+}
+function getCookie(name) {
+  const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
+  return v ? v.pop() : "";
+}
+
+// ── Step 1: File upload → parse ──────────────────────────────────────────
+document.getElementById("fileInput").addEventListener("change", async () => {
+  clearError();
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("csrfmiddlewaretoken", getCookie("csrftoken"));
+
+  try {
+    const res = await fetch("{% url 'qpcr_analysis:parse_excel' %}", {
+      method: "POST", body: fd,
+    });
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+
+    state.sheets = data.sheets;
+    state.numericCols = data.numeric_cols;
+    state.groupCols = data.group_cols;
+    state.groups = data.groups;
+    state.repColCandidates = data.rep_col_candidates;  // ← añadir en el fileInput listener
+
+    // Populate sheet selector
+    const sheetSel = document.getElementById("sheetSelect");
+    sheetSel.innerHTML = data.sheets.map(s => `<option>${s}</option>`).join("");
+    document.getElementById("sheetWrapper").style.display = "";
+
+    // Populate group column selector
+    const gcSel = document.getElementById("groupColSelect");
+    gcSel.innerHTML = data.group_cols.map(
+      c => `<option ${c === data.default_group_col ? "selected" : ""}>${c}</option>`
+    ).join("");
+    document.getElementById("groupColWrapper").style.display = "";
+
+    renderConfig(data.numeric_cols, data.groups);
+    document.getElementById("configSection").style.display = "";
+    document.getElementById("resultsSection").style.display = "none";
+  } catch (e) {
+    showError("Upload failed: " + e.message);
+  }
+});
+
+// Re-parse on sheet change
+document.getElementById("sheetSelect").addEventListener("change", async () => {
+  clearError();
+  const fd = buildFormData();
+  const res = await fetch("{% url 'qpcr_analysis:parse_excel' %}", {
+    method: "POST", body: fd,
+  });
+  const data = await res.json();
+  if (data.error) { showError(data.error); return; }
+  state.numericCols = data.numeric_cols;
+  state.groupCols = data.group_cols;
+  state.groups = data.groups;
+  state.repColCandidates = data.rep_col_candidates;
+
+  const gcSel = document.getElementById("groupColSelect");
+  gcSel.innerHTML = data.group_cols.map(
+    c => `<option ${c === data.default_group_col ? "selected" : ""}>${c}</option>`
+  ).join("");
+  renderConfig(data.numeric_cols, data.groups);
+});
+
+// Reload group levels on group-column change
+document.getElementById("groupColSelect").addEventListener("change", async () => {
+  clearError();
+  const fd = buildFormData();
+  const res = await fetch("{% url 'qpcr_analysis:get_groups' %}", {
+    method: "POST", body: fd,
+  });
+  const data = await res.json();
+  if (data.error) { showError(data.error); return; }
+  state.groups = data.groups;
+  const rgSel = document.getElementById("refGroupSelect");
+  rgSel.innerHTML = data.groups.map(g => `<option>${g}</option>`).join("");
+  renderGroupOrder(data.groups);
+  renderColorPickers(data.groups);
+});
+
+// ── Render config form ───────────────────────────────────────────────────
+function renderConfig(numericCols, groups) {
+  // Housekeeping selector
+  const refSel = document.getElementById("refGeneSelect");
+  refSel.innerHTML = numericCols.map(c => `<option>${c}</option>`).join("");
+
+  // Target gene checkboxes
+  const box = document.getElementById("geneCheckboxes");
+  box.innerHTML = numericCols.map((c, i) => `
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="gene_${i}" value="${c}">
+      <label class="form-check-label" for="gene_${i}">${c}</label>
+    </div>`).join("");
+
+  // Reference group selector
+  const rgSel = document.getElementById("refGroupSelect");
+  rgSel.innerHTML = groups.map(g => `<option>${g}</option>`).join("");
+
+  // Draggable group order list
+  renderGroupOrder(groups);
+
+  // Colour pickers
+  renderColorPickers(groups);
+
+  // ── Bio rep column selector ──────────────────────────────────────────
+  const groupColValue = document.getElementById("groupColSelect").value;  // ← fix
+  const repSel = document.getElementById("repColSelect");
+  const nonNumeric = state.groupCols.filter(c => c !== groupColValue);
+    repSel.innerHTML = `<option value="">— none (already averaged) —</option>` +
+    state.repColCandidates.map(c => `<option value="${c}">${c}</option>`).join("");
+    document.getElementById("repColWrapper").style.display = "";
+}
+
+function renderGroupOrder(groups) {
+  const ul = document.getElementById("groupOrder");
+  ul.innerHTML = groups.map(g => `
+    <li class="list-group-item d-flex align-items-center gap-2" data-group="${g}">
+      <span class="text-muted" style="cursor:grab">&#9776;</span> ${g}
+    </li>`).join("");
+  Sortable.create(ul, { animation: 150 });
+}
+
+function renderColorPickers(groups) {
+  const container = document.getElementById("colorPickers");
+  container.innerHTML = groups.map((g, i) => {
+    const col = DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+    state.colors[g] = col;
+    return `
+      <div class="d-flex align-items-center gap-2">
+        <input type="color" id="color_${i}" value="${col}"
+               class="form-control form-control-color"
+               data-group="${g}"
+               title="${g}"
+               oninput="state.colors[this.dataset.group]=this.value">
+        <label for="color_${i}" class="mb-0">${g}</label>
+      </div>`;
+  }).join("");
+}
+
+// ── Step 2: Run analysis ─────────────────────────────────────────────────
+document.getElementById("runBtn").addEventListener("click", async () => {
+  clearError();
+
+  const genes = [...document.querySelectorAll("#geneCheckboxes input:checked")]
+    .map(el => el.value);
+  const refGene = document.getElementById("refGeneSelect").value;
+  const refGroup = document.getElementById("refGroupSelect").value;
+  const groupOrder = [...document.querySelectorAll("#groupOrder li")]
+    .map(li => li.dataset.group);
+  const colorMap = JSON.stringify(state.colors);
+
+  if (!genes.length) { showError("Select at least one target gene."); return; }
+  if (genes.includes(refGene)) {
+    showError("Housekeeping gene cannot also be a target gene."); return;
+  }
+
+  document.getElementById("runSpinner").style.display = "";
+  document.getElementById("runBtn").disabled = true;
+
+  const fd = buildFormData({
+    ref_gene: refGene,
+    ref_group: refGroup,
+    genes: genes,
+    group_order: groupOrder,
+    color_map: colorMap,
+    rep_col:   document.getElementById("repColSelect").value,  // ← nuevo
+
+  });
+
+  try {
+    const res = await fetch("{% url 'qpcr_analysis:run_analysis' %}", {
+      method: "POST", body: fd,
+    });
+    const data = await res.json();
+    if (data.error) { showError(data.error); return; }
+
+    // Render Plotly chart
+    Plotly.react("plotDiv", data.plot.data, data.plot.layout, {responsive: true});
+    document.getElementById("resultsSection").style.display = "";
+
+    // Populate summary table
+    const tbody = document.getElementById("summaryTbody");
+    tbody.innerHTML = data.table.map(r => `
+      <tr>
+        <td>${r.gene}</td>
+        <td>${r.group}</td>
+        <td>${r.mean_expr.toFixed(4)}</td>
+        <td>${r.se_expr.toFixed(4)}</td>
+        <td>[${r.lower.toFixed(3)}, ${r.upper.toFixed(3)}]</td>
+        <td>${r.pvalue.toFixed(4)}</td>
+        <td><strong>${r.stars}</strong></td>
+        <td>${r.n}</td>
+      </tr>`).join("");
+
+    // Populate copy-ready methods paragraph
+    const repCol = document.getElementById("repColSelect").value;
+    const geneList = genes.length > 1
+      ? genes.slice(0, -1).join(", ") + " and " + genes[genes.length - 1]
+      : genes[0];
+    const repSentence = repCol
+      ? ` Technical replicates were averaged per biological replicate (${repCol}) prior to normalization.`
+      : "";
+    const methodsText =
+      `Relative expression of ${geneList} was quantified using the 2^-ΔΔCt method ` +
+      `(Livak & Schmittgen, Methods 2001) implemented in ExonSurfer ` +
+      `(Monfort-Lanzas et al., BMC Genomics 2024; doi:10.1186/s12864-024-10456-2), ` +
+      `assuming 100% amplification efficiency.${repSentence} ` +
+      `Ct values were normalized to ${refGene} (ΔCt = Ct_target − Ct_reference) and calibrated ` +
+      `to the mean ΔCt of the ${refGroup} group (ΔΔCt = mean ΔCt_group − mean ΔCt_reference). ` +
+      `Fold changes are reported as 2^-ΔΔCt with asymmetric dispersion bounds 2^-(ΔΔCt ± SD_ΔCt). ` +
+      `Statistical comparisons against ${refGroup} were performed on ΔCt values using two-sided ` +
+      `Welch's t-tests (* p < 0.05, ** p < 0.01, *** p < 0.001).`;
+    document.getElementById("methodsParagraph").textContent = methodsText;
+
+    // Scroll to results
+    document.getElementById("resultsSection").scrollIntoView({behavior: "smooth"});
+  } catch (e) {
+    showError("Analysis failed: " + e.message);
+  } finally {
+    document.getElementById("runSpinner").style.display = "none";
+    document.getElementById("runBtn").disabled = false;
+  }
+});
+
+document.getElementById("copyMethodsBtn").addEventListener("click", async () => {
+  const text = document.getElementById("methodsParagraph").textContent;
+  const btn = document.getElementById("copyMethodsBtn");
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "Copied";
+    setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+  } catch (e) {
+    showError("Could not copy to clipboard.");
+  }
+});
+</script>
+{% endblock %}

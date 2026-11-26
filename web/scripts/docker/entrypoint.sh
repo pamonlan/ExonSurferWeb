@@ -20,9 +20,26 @@ echo "from django.contrib.auth import get_user_model; User = get_user_model(); U
 export PYENSEMBL_CACHE_DIR=/home/app/web/Data/
 export EXONSURFER_CACHE_DIR=/home/app/web/Data/
 
-pyensembl install --release 108 --species homo_sapiens mouse rat zebrafish fly
-pyensembl install --release 57 --species rice arabidopsis
+# Vertebrates release 108
+pyensembl install --release 108 --species homo_sapiens mus_musculus rattus_norvegicus \
+    danio_rerio drosophila_melanogaster xenopus_tropicalis \
+    caenorhabditis_elegans saccharomyces_cerevisiae
+
+# Plants release 57
+pyensembl install --release 57 --species arabidopsis_thaliana oryza_sativa \
+    solanum_lycopersicum zea_mays glycine_max
+    
+python3 /home/app/web/DownloadWorm.py
 exon_surfer.py -db True
+
+# Regenerate table.txt for species whose Zenodo-bundled version was built with
+# the gene_symbol/gene tag-priority bug (falls back to the stable Ensembl ID
+# instead of the real gene symbol - breaks BLAST self/off-target detection).
+# Reuses the cDNA FASTA pyensembl already cached above, no extra download.
+python3 /home/app/web/scripts/docker/fix_table_txt.py \
+    caenorhabditis_elegans drosophila_melanogaster saccharomyces_cerevisiae \
+    xenopus_tropicalis oryza_sativa solanum_lycopersicum glycine_max zea_mays
+
 echo "from ensembl.management.populate_data import main; main()" | python3 /home/app/web/manage.py shell
 
 #sh /home/app/web/scripts/docker/remove_temporal.sh &

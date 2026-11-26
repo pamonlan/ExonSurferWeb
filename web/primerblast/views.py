@@ -25,6 +25,7 @@ from .management.transcript_info import get_exon_transcript_information, get_spe
 from .management.visualization import (plot_primerpair_aligment, plot_cdna, plot_off_target, 
                                         plot_transcripts_alone, plot_transcripts_marked)
 from .models import Session, PrimerConfig, Result
+from ensembl.management.species_config import SPECIES_FIELD_MAP, get_release, SPECIES
 
 
 ### Sharing Parameters
@@ -32,14 +33,7 @@ from .models import Session, PrimerConfig, Result
 #
 lCol = ['pair_num', 'forward',  'reverse', 'amplicon_size', 'amplicon_tm',
          'forward_tm', 'reverse_tm', 'forward_gc',  'reverse_gc','dimers','indiv_als',
-         'detected', 'not_detected', 'pair_score', 'off_targets']
-
-canonical_chr = {
-    "homo_sapiens": [str(i) for i in range(1, 23)] + ['X', 'Y'],  # This species has chromosomes 1-22, X, and Y.
-    "rattus_norvegicus": [str(i) for i in range(1, 21)] + ['X', 'Y'],
-    "mus_musculus": [str(i) for i in range(1, 20)] + ['X', 'Y']  
-}
-
+         'detected', 'not_detected', 'pair_score', 'AG_dimer', 'off_targets', "amp_noteq_len","diff_lens_amps"]
 
 pretty_names = {
             'pair_num': 'Primer Pair',
@@ -55,10 +49,13 @@ pretty_names = {
             'other_transcripts': 'Transcript Off-target',
             'other_genes': 'Gene Off-target',
             'pair_score': 'Pair Score',
+            'AG_dimer': 'AG Dimer Score',
             'detected': 'Detected Transcripts',
             'not_detected': 'Not Detected Transcripts',
             'off_targets': 'Off-target Transcripts/Genes',
-            'dimers': 'Dimers'
+            'dimers': 'Dimers',
+            "amp_noteq_len": "Not equal amplicon length",
+            "diff_lens_amps": "Different amplicon lengths"
                 }
 
 lColors = ['#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#333aff', '#a65628', '#f781bf', \
@@ -82,49 +79,70 @@ class SelectGeneSpeciesView(CreateView):
 
             # Optionally, add additional context such as REDIS_URL from environment
             context["REDIS_URL"] = os.environ.get("REDIS_URL", "")
-
+            context["species_config"] = {
+                k: v for k, v in SPECIES.items() 
+                if v["api_url"] is not None and k != "homo_sapiens_masked"
+            }
             return render(request, self.template_name, context)
         except Exception as e:
             # Log the exception or handle it as needed
             print(f"[!] Error in GET request handling: {e}")
             raise Http404('Error while processing the request.')
-
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            # Extract the validated data
-            gene_field = form.cleaned_data['gene_field']
-            species = form.cleaned_data.get('species')
-            use_masked_genomes = form.cleaned_data.get('use_masked_genomes', False)
+            form = self.form_class(request.POST)
+            print("[+] POST request received", flush=True)
 
-            context = {
-                'form': form,
-                "title": "Gene and Species Selection",
-                "species": species,
-                "gene_field": gene_field,
-                "use_masked_genomes": use_masked_genomes
-            }
-            # Querying your Gene model:
-            try:
-                gene = Gene.objects.filter((Q(gene_name=gene_field) | Q(gene_id=gene_field)) & Q(species=species) & Q(seqname__in=canonical_chr[species])).first()
-                if gene:
-                    # Render this view with the gene information
-                    context["gene"] = gene
-                    return render(request, self.template_name, context)
-                else:
-                    # If no gene is found,render the form with a warning message indicating the gene and species that the user input
-                    messages.warning(request, f"No gene found for the specified criteria: {gene_field} in {species}")
-                    return render(request, self.template_name, context)
-            except Exception as e:
-                # Log the exception or handle it as needed
-                print(f"[!] Error in POST request handling: {e}")
-                messages.error(request, "An error occurred while processing the request.")
-                return render(request, self.template_name, context)
-        else:
-            # If form is not valid, render the form with errors
-            messages.error(request, "Please correct the errors below.")
-            return render(request, self.template_name, context)
+            if form.is_valid():
+                species = form.cleaned_data.get('species')
+                non_coding = form.cleaned_data.get('use_non_protein_coding', False)
+                use_masked_genomes = form.cleaned_data.get('use_masked_genomes', False)
 
+                # 1. Define a Map: Species -> HTML Input Name
+                # This is safer than parallel lists
+                species_field_map = SPECIES_FIELD_MAP
+
+                # 2. Get the specific field name for the selected species
+                field_name = species_field_map.get(species)
+                
+                # 3. safely get the value from POST (returns None if missing, doesn't crash)
+                gene_field = request.POST.get(field_name)
+
+                print(f"[+] Selected Species: {species}, Field: {field_name}, Value: {gene_field}")
+
+                context = {
+                    'form': form,
+                    "title": "Gene and Species Selection",
+                    "species": species,
+                    "gene_field": gene_field,
+                }
+
+                if not gene_field or gene_field == "Select a gene":
+                    messages.error(request, f"Please select a valid gene for {species}.")
+                    return render(request, self.template_name, context)
+
+                try:
+                    # Query the DB
+                    gene = Gene.objects.filter(
+                        (Q(gene_name__iexact=gene_field) | Q(gene_id__iexact=gene_field)) & Q(species=species)
+                    ).first()
+
+                    if gene:
+                        # Handle masked genomes specific case
+                        redirect_species = "homo_sapiens_masked" if (species == "homo_sapiens" and use_masked_genomes) else species
+                        
+                        return redirect('primerblast', species=redirect_species, symbol=gene.gene_id, non_coding=non_coding)
+                    else:
+                        messages.warning(request, f"No gene found for: {gene_field} in {species}")
+                        return render(request, self.template_name, context)
+
+                except Exception as e:
+                    print(f"[!] Database/Processing Error: {e}", flush=True)
+                    messages.error(request, "An internal error occurred.")
+                    return render(request, self.template_name, context)
+            
+            else:
+                messages.error(request, "Form validation failed.")
+                return render(request, self.template_name, {'form': form, "title": "Gene and Species Selection"})
 
 ## View to assign the parameters for the primer design
 ## Allows the user to select the transcript and the parameters for the primer design
@@ -132,21 +150,34 @@ class SelectGeneSpeciesView(CreateView):
 class PrimerBlastFormView(CreateView):
     template_name = 'primerblast/primer_config_forms.html'
 
-    def get(self, request, species, symbol):
+    def get(self, request, species, symbol, non_coding):
         try:
             # Obtain the session from the DB with the session_slug (identifier)
             print("[+] Obtaining transcript list for in view: ", species, symbol, "")
             
             self.species = species
-            gene = Gene.objects.get(gene_name=symbol, species=get_specie(species))
-            print(gene)
+            gene = Gene.objects.get(gene_id=symbol, species=get_specie(species))
+            print("[+] Obtaining gene: ", gene, "", flush=True)
+            print("[+] Non-coding: ", non_coding, "", flush=True)
             self.symbol = symbol
-            lT = Transcript.objects.filter(gene_name=symbol, species=get_specie(species), transcript_biotype="protein_coding")
-            #Invert list
-            print(lT)
+            # Correct handling of 'non_coding' as boolean
+            non_coding_bool = non_coding.lower() == 'true'
+            print(f"Looking for non-coding transcripts: {non_coding_bool}, for gene: {symbol} in species: {species}")
+            
+            # Use the correct boolean value to filter transcripts
+            if non_coding_bool:
+                print("Looking for non-coding transcripts")
+                lT = Transcript.objects.filter(gene_id=symbol, species=get_specie(species))
+            else:
+                print("Looking for protein-coding transcripts")
+                lT = Transcript.objects.filter(gene_id=symbol, species=get_specie(species), transcript_biotype="protein_coding")
 
             if len(lT) == 0:
-                messages.warning(request, "There is no transcript for this gene in the selected species")
+                if not non_coding_bool:
+                    messages.warning(request, "There is no non-coding transcript for this gene in the selected species. Please check the option to use non-coding transcripts.")
+                else:
+                    messages.warning(request, "There is no transcript for this gene in the selected species")
+
                 return redirect('index')
 
             form = PrimerBlastForm(species=get_specie(species), symbol=symbol, lT=list(lT.values_list('transcript_id', flat=True)))
@@ -156,6 +187,7 @@ class PrimerBlastFormView(CreateView):
             context["species"] = species
             context["gene"] = gene
             context["transcripts"] = lT
+            context["non_coding"] = non_coding
 
             ## Add symbol and species to the request.session
             request.session["species"] = species
@@ -173,13 +205,23 @@ class PrimerBlastFormView(CreateView):
             return render(request, self.template_name, context)
 
 
-    def post(self, request,species, symbol):
+    def post(self, request,species, symbol, non_coding):
         # We get the filter condition
         try:
-            gene = Gene.objects.get(gene_name=symbol, species=get_specie(species))
+            gene = Gene.objects.get(gene_id=symbol, species=get_specie(species))
             print(gene)
             self.symbol = symbol
-            lT = Transcript.objects.filter(gene_name=symbol, species=get_specie(species), transcript_biotype="protein_coding")
+            non_coding_bool = non_coding.lower() == 'true'
+            print(f"Looking for non-coding transcripts: {non_coding_bool}, for gene: {symbol} in species: {species}")
+            
+            # Use the correct boolean value to filter transcripts
+            if non_coding_bool:
+                print("Looking for non-coding transcripts")
+                lT = Transcript.objects.filter(gene_id=symbol, species=get_specie(species))
+            else:
+                print("Looking for protein-coding transcripts")
+                lT = Transcript.objects.filter(gene_id=symbol, species=get_specie(species), transcript_biotype="protein_coding")
+
         except Exception as error:
             print("[!] Error obtaining the transcript list: ", error, "")
             raise Http404('Session not found...!')
@@ -205,6 +247,8 @@ class PrimerBlastFormView(CreateView):
                 primer_config = PrimerConfig().from_dict(dForm)
                 session = Session.create_session(species, symbol, transcript_add)
                 session.set_design_config(primer_config)
+                if non_coding_bool:
+                    session.set_non_coding()
                 session.save()
 
                 # Get all sessions for the gene, species, and transcript
@@ -273,7 +317,7 @@ class ExonSurferView(CreateView):
 
             session = Session.objects.get(session_id=session_slug)
             try:
-                gene = Gene.objects.get(gene_name=session.symbol, species=get_specie(session.species))
+                gene = Gene.objects.get(gene_id=session.symbol, species=get_specie(session.species))
             except:
                 gene = None
             # Obtain PrimerJob from session
@@ -339,7 +383,7 @@ class ResultTableView(CreateView):
 
             session = Session.objects.get(session_id=session_slug)
             try:
-                gene = Gene.objects.get(gene_name=session.symbol, species=get_specie(session.species))
+                gene = Gene.objects.get(gene_id=session.symbol, species=get_specie(session.species))
             except:
                 gene = None
             # Obtain PrimerJob from session
@@ -415,7 +459,7 @@ class PrimerPairView(CreateView):
              
             session = Session.objects.get(session_id=session_slug)
             try:
-                gene = Gene.objects.get(gene_name=session.symbol, species=get_specie(session.species))
+                gene = Gene.objects.get(gene_id=session.symbol, species=get_specie(session.species))
             except:
                 gene = None
             #Obtain symbol, transcript and species from the session
@@ -434,7 +478,7 @@ class PrimerPairView(CreateView):
                 primer_pair_blast = session.get_primer_pair_blast(pair)
                 context["primer_pair"] = primer_pair
                 #List exons and colors
-                lExons = primer_pair["junction"].split("-")
+                lExons = primer_pair["junction"].split("_")
                 dExons = dict(zip(lExons, lColors))
                 context["dExons"] = dExons
                 #List transcript that detect the primer pair
@@ -481,7 +525,7 @@ class PrimerPairOffTargetView(CreateView):
              
             session = Session.objects.get(session_id=session_slug)
             try:
-                gene = Gene.objects.get(gene_name=session.symbol, species=get_specie(session.species))
+                gene = Gene.objects.get(gene_id=session.symbol, species=get_specie(session.species))
             except:
                 gene = None
             #Obtain symbol, transcript and species from the session
@@ -582,15 +626,16 @@ class SessionUpdateView(UpdateView):
 
 ## Transcript Exon View
 ## Show the transcript and exon information
-def ExonTranscriptView_gene_species(request, gene, species):
+def ExonTranscriptView_gene_species(request, gene, species,non_coding):
     try:
         # Obtain the symbol, and species from the request.session
         symbol = gene
         species = get_specie(species)
         #Obtain the transcript from the request, if not, set to ALL
         transcripts = "ALL"
-        release = 57 if species in ("arabidopsis_thaliana","oryza_sativa") else 108
-        html = plot_transcripts_alone(species, symbol, transcripts, release)
+        non_coding = non_coding.lower() == 'true'
+        release = get_release(species)
+        html = plot_transcripts_alone(species, symbol, transcripts, release, exclude_noncoding=not non_coding)
     except Exception as error:
         print("[!] Error in the ExonTranscriptView_gene_species", flush=True)
         print(error, flush=True)
@@ -610,9 +655,9 @@ def ExonTranscriptView(request, session_slug, pair):
         final_df.fillna("", inplace=True)
         final_df["for_pos"] = final_df["for_pos"].apply(lambda x: eval(x))
         final_df["rev_pos"] = final_df["rev_pos"].apply(lambda x: eval(x))
-        release = 57 if species in ("arabidopsis_thaliana","oryza_sativa") else 108
+        release = get_release(species)
 
-        html = plot_transcripts_marked(species, symbol, "ALL", release, pair, final_df)
+        html = plot_transcripts_marked(species, symbol, "ALL", release, pair, final_df, exclude_noncoding=not session.is_non_coding)
     except Exception as error:
         print("[!] Error in the ExonTranscriptView",flush=True)
         print(error,flush=True)
@@ -642,6 +687,7 @@ def cDNATranscriptView(request, session_slug, pair):
         print("[!] Obtaining primer df",flush=True)
         final_df = Result.objects.get(session_id=session).get_primer_file()
         final_df.index = final_df.pair_num
+        release = get_release(species)
         print(final_df.head())
         print("[!] Obtaining cDNA",flush=True)
         #pair_id = int(pair_id.replace("Pair",""))
@@ -654,7 +700,7 @@ def cDNATranscriptView(request, session_slug, pair):
         else:
             gene_path = False
         print("[!] Obtaining cDNA",flush=True)
-        html = plot_cdna(pair, final_df, species, file=gene_path)
+        html = plot_cdna(pair, final_df, species, release=release, file=gene_path)
         print("[!] Obtained cDNA",flush=True)
         print(html)
 
@@ -766,10 +812,7 @@ def download_excel_pair(request, session_slug, pair):
     primer_pair_df = primer_pair_df[lCol]
     primer_pair_df.columns = [pretty_names[col] for col in lCol]
     # Add a citation for the primer design tool
-    primer_pair_df.loc[1, "Primer Pair"] = """The primer pair was designed using the ExonSurfer tool (Monfort-Lanzas & Rusu, 2023), 
-    which is a web-based tool for designing primers at exon-exon junctions. Please cite the following reference 
-    when using the primer pair in your research: Monfort-Lanzas, P., & Rusu, E. C. (2023). ExonSurfer: A Web-tool to Design Primers at Exon–Exon Junctions.
-      In 10th Gene Quantification Event 2023 qPCR dPCR & NGS (Po-54). Freising-Weihenstephan, School of Life Sciences, Technical University of Munich, Weihenstephan, Germany. """
+    primer_pair_df.loc[1, "Primer Pair"] = """Monfort-Lanzas, P., Rusu, E.C., Parrakova, L. et al. ExonSurfer: a web-tool to design primers at exon–exon junctions. BMC Genomics 25, 594 (2024). https://doi.org/10.1186/s12864-024-10456-2"""
     # Set the filename for the Excel file
     filename = f"{symbol}_{species}_primer_pair_{pair}.xlsx"
     # Create an in-memory output file for the Excel workbook
@@ -898,99 +941,4 @@ class ErrorDesignView(CreateView):
 
             raise Http404('Session not found...!')
         return render(request, template_name=self.template_name, context=context)
-
-
-class SelectGeneSpeciesViewOld(CreateView):
-    template_name = 'exonsurfer/index.html'
-
-    def get(self, request):
-        try:
-            # Obtain the spcies and gene from the form
-            form = SpeciesGeneForm()
-            context = {'form': form}
-            context["title"] = "Gene and Species Selection"
-
-            # Obtain REDIS_URL from the environment
-            if "REDIS_URL" in os.environ:
-                context["REDIS_URL"] = os.environ["REDIS_URL"]
-
-        except:
-            raise Http404('Session not found...!')
-
-        else:
-            # We pase the session to the template with the Context Dyct
-
-            return render(request, self.template_name, context)
-
-
-    def post(self, request):
-        # We get the filter condition
-        form = SpeciesGeneForm(request.POST)
-        if form.is_valid():
-            print(form.cleaned_data)
-            dForm = form.cleaned_data
-            try:
-
-                #check if there is a gene in the field for the selected species,
-                #and obtain the gene and species
-                if dForm["species"] == "homo_sapiens":
-                    if dForm["human_symbol"] == "":
-                        messages.warning(request, "Please, write a gene")
-                        return redirect('index')
-                    else:
-                        if dForm["use_masked_genomes"] != []:
-                            human_symbol = dForm["human_symbol"]
-                            species = "homo_sapiens_masked"
-                        else:
-                            human_symbol = dForm["human_symbol"]
-                            species = dForm["species"]
-                elif dForm["species"] == "mus_musculus":
-                    if dForm["mouse_symbol"] == "":
-                        messages.warning(request, "Please, write a gene")
-                        return redirect('index')
-                    else:
-                        human_symbol = dForm["mouse_symbol"]
-                        species = dForm["species"]
-                elif dForm["species"] == "rattus_norvegicus":
-                    if dForm["rat_symbol"] == "":
-                        messages.warning(request, "Please, write a gene")
-                        return redirect('index')
-                    else:
-                        human_symbol = dForm["rat_symbol"]
-                        species = dForm["species"]
-                elif dForm["species"] == "fly_symbol":
-                    if dForm["fly_symbol"] == "":
-                        messages.warning(request, "Please, write a gene")
-                        return redirect('index')
-                    else:
-                        human_symbol = dForm["fly_symbol"]
-                        species = dForm["species"]
-                elif dForm["species"] == "arabidopsis_thaliana":
-                    if dForm["arabidopsis_symbol"] == "":
-                        messages.warning(request, "Please, write a gene")
-                        return redirect('index')
-                    else:
-                        human_symbol = dForm["arabidopsis_symbol"]
-                        species = dForm["species"]
-                else:
-                    messages.warning(request, "Please, write a gene name")
-                    return redirect('index')
-                
-
-
-            except Exception as error:
-                messages.warning(request, "Please, write a gene name")
-                print("[!] Error in the form, in view: SelectGeneSpeciesView", flush=True)
-                print("[!] Error: ", error, flush=True)
-                return redirect('index')
-            else:
-                # Redirect to the next step sending the gene and species
-                return redirect('primerblast', species=species, symbol=human_symbol)
-        else:
-            print("[!] Error in the form, in view: SelectGeneSpeciesView", flush=True)
-            print("[!] Form not valid", form.errors, flush=True)
-            print(form.errors, flush=True)
-            messages.warning(request,form.errors)
-
-        return render(request, self.template_name, {'form': form})
 

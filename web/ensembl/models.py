@@ -1,4 +1,5 @@
 from django.db import models
+from ensembl.management.species_config import DISPLAY_NAMES
 
 # Create your models here.
 #Create a Gene model
@@ -26,15 +27,7 @@ class Gene(models.Model):
         return "http://www.ensembl.org/{}/Gene/Summary?db=core;g={};".format(self.get_species(), self.gene_id)
          
     def get_species(self):
-        species_dict = {
-            "homo_sapiens": "Homo sapiens",
-            "mus_musculus": "Mus musculus",
-            "rattus_norvegicus": "Rattus norvegicus",
-            "arabidopsis_thaliana": "Arabidopsis thaliana",
-            "drosophila_melanogaster":"Drosophila melanogaster"
-
-        }
-        return species_dict[self.species]
+        return DISPLAY_NAMES.get(self.species, self.species)
     
     def get_number_transcripts(self):
         """
@@ -73,30 +66,44 @@ class Transcript(models.Model):
     def __str__(self):
         return self.transcript_name
     
-    
+        
     def get_species(self):
-        species_dict = {
-            "homo_sapiens": "Homo sapiens",
-            "mus_musculus": "Mus musculus",
-            "rattus_norvegicus": "Rattus norvegicus",
-            "arabidopsis_thaliana": "Arabidopsis thaliana",
-            "drosophila_melanogaster":"Drosophila melanogaster"
-
-        }
-        return species_dict[self.species]
+        return DISPLAY_NAMES.get(self.species, self.species)
     
 
     def get_ensembl_url(self):
         return "http://www.ensembl.org/{}/Transcript/Summary?db=core;t={};".format(self.get_species(), self.transcript_id)
 
 
-    transcript_name = models.CharField(max_length=100)
+    transcript_name = models.CharField(max_length=100, blank=True, null=True)
     transcript_id = models.CharField(max_length=100)
     transcript_biotype = models.CharField(max_length=100)
     refseq_id = models.CharField(max_length=100, blank=True, null=True)
     gene_id = models.CharField(max_length=100)
-    gene_name = models.CharField(max_length=100)
+    gene_name = models.CharField(max_length=100, blank=True, null=True)
     species = models.CharField(max_length=100, default="homo_sapiens")
     
 
+class HousekeepingGene(models.Model):
+    """
+    Curated reference/housekeeping genes for qPCR normalisation.
+    Sources: HRT Atlas (human/mouse), PaGenBase (invertebrates/plants),
+             Rice Expression Database (rice).
+    """
+    species         = models.CharField(max_length=100, db_index=True)
+    gene_name       = models.CharField(max_length=100)
+    gene_id         = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    match_type      = models.CharField(max_length=20)   # iexact | direct | ncbi_crosswalk | unmapped
+    source          = models.CharField(max_length=100)  # HRT Atlas | PaGenBase | RED
+    source_url      = models.URLField()
+    context         = models.CharField(max_length=100)  # most_stable | multi-tissue | development ...
+    rank            = models.IntegerField(null=True)    # 1 = most stable
+    dpm             = models.FloatField(null=True)      # PaGenBase stability score
+    avg_expression  = models.FloatField(null=True)      # RED expression level
 
+    class Meta:
+        ordering = ["species", "rank", "gene_name"]
+        unique_together = [["species", "gene_name", "source", "context"]]
+
+    def __str__(self):
+        return f"{self.gene_name} ({self.species})"
