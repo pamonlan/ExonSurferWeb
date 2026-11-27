@@ -165,20 +165,42 @@ def populate_transcript_table(specie):
 
 def populate_housekeeping_genes():
     """
-    Populate the housekeeping_gene table from a curated TSV file.
-    The TSV file should have the following columns:
-        gene_name, gene_id, match_type, source, source_url, context, rank, dpm, avg_expression
+    Populate the ensembl_housekeepinggene table from the versioned curated CSV
+    at web/ensembl/data/top50_housekeeping_exonsurfer.csv (14 species x 50 genes,
+    100% verified against ExonSurfer GTF databases).
     """
-    df = pd.read_csv("/home/app/web/Data/HK/combined_hk_genes_top50_ensembl.csv", sep=",")
+    csv_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "data",
+        "top50_housekeeping_exonsurfer.csv",
+    )
+    df = pd.read_csv(csv_path)
+    for col in ("biotype", "sources", "stability_metric", "citation"):
+        if col in df.columns:
+            df[col] = df[col].fillna("")
 
     table_name_local = "ensembl_housekeepinggene"
 
+    # Self-heal legacy empty table schema (e.g. apps-01 upgrade from 2.0-rc1 -> 2.0-rc2)
+    from django.db import connection
+    from ensembl.models import HousekeepingGene
+    with connection.cursor() as cur:
+        existing_cols = {
+            c.name for c in connection.introspection.get_table_description(cur, table_name_local)
+        } if table_name_local in connection.introspection.table_names(cur) else set()
+        if "evidence_tier" not in existing_cols:
+            cur.execute(f"DROP TABLE IF EXISTS {table_name_local} CASCADE;")
+    if "evidence_tier" not in existing_cols:
+        with connection.schema_editor() as se:
+            se.create_model(HousekeepingGene)
+        print("[+] Recreated ensembl_housekeepinggene table with updated 2.0-rc2 schema", flush=True)
+
     try:
-        df.to_sql(name=table_name_local, if_exists="append",con=create_engine(), index=False)
+        df.to_sql(name=table_name_local, if_exists="append", con=create_engine(), index=False)
     except IntegrityError:
         print("[+] Warning: The housekeeping gene data already exists in the database", flush=True)
     else:
-        print(f"[+] Housekeeping gene data inserted", flush=True)
+        print(f"[+] Housekeeping gene data inserted ({len(df)} rows across {df['species'].nunique()} species)", flush=True)
         update_pk(table_name_local)
 
 
@@ -205,17 +227,8 @@ def main():
 
     print("\n[+] All species processed.", flush=True)
 
-    # --- Housekeeping genes: parked 2026-11-26 ---------------------------------
-    # The housekeeping / reference-gene feature (qPCR normalisation, workstream 2
-    # of ExonSurfer 2.0) is future work. The model and the admin registration stay
-    # so migrations are unaffected; only the population step is disabled, so the
-    # table is simply left empty.
-    #
-    # try:
-    #     populate_housekeeping_genes()
-    # except FileNotFoundError:
-    #     print("[!] Housekeeping gene TSV file not found. Skipping housekeeping gene population.", flush=True)
-    # else:
-    #     print("[+] Housekeeping gene data population complete.", flush=True)
-    print("[i] Housekeeping gene population disabled (feature parked).", flush=True)
+    try:
+        populate_housekeeping_genes()
+    except FileNotFoundError as exc:
+        print(f"[!] Housekeeping gene CSV not found ({exc}). Skipping.", flush=True)
         

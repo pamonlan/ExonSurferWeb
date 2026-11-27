@@ -2,6 +2,20 @@
 
 All notable changes to ExonSurferWeb are documented in this file.
 
+## [2.0.0-rc2] - 2026-11-27
+
+### Added
+- Curated Top-50 housekeeping / reference gene dataset (`web/ensembl/data/top50_housekeeping_exonsurfer.csv`, 14 species × 50 genes = 700 genes, 100% verified against ExonSurfer GTF databases, 0 unmapped) built from HRT Atlas, PaGenBase, RED v1, Czechowski 2005, Mughal 2018, Cheng 2017, PMID-backed literature GMTs, and Ensembl/WormBase ParaSite 1-to-1 orthologs.
+- `?hk=1` query mode on `/api/<species>/` (`ensembl/views.py`) returning ranked Top-50 housekeeping candidates with evidence tier, sources, and citations.
+- `Show recommended housekeeping genes (Top 50)` toggle on the home page (`index.html`) reusing the existing species gene dropdown with instant client-side caching, clickable PubMed/DOI/PMC citations, evidence badges, and an inline MIQE validation note.
+- Documented per-species housekeeping gene curation methodology in `FAQ.html` and added full database and primary validation paper citations to `references.html`.
+
+### Changed
+- Updated `HousekeepingGene` Django model (`ensembl/models.py`), admin (`ensembl/admin.py`), and re-enabled `populate_housekeeping_genes()` (`ensembl/management/populate_data.py`) reading directly from the versioned CSV.
+
+### Removed
+- Removed legacy uncurated `web/Data/HK/` archive and obsolete `prepare_hk_genes.py` / `enrich_hk_with_ensembl_ids.py` scripts.
+
 ## [2.0.0-rc1] - 2026-11-26
 
 ### Added

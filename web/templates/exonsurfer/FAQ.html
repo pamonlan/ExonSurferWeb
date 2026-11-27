@@ -32,6 +32,29 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-12">
+            <h4>How are the recommended housekeeping genes selected?</h4>
+            <p>ExonSurfer provides a curated Top-50 list of candidate reference genes for each of the 14 supported species (700 genes total). Every gene ID is verified directly against ExonSurfer’s exact Ensembl/WormBase GTF annotations (rRNA/tRNA excluded) and prioritized by evidence tier (qPCR-validated &gt; curated most-stable &gt; literature-curated &gt; transcriptome screen &gt; 1:1 orthologs), cross-source consensus, and stability score (lowest DPM, CV, or &tau;). Per MIQE guidelines, these are starting candidates—always validate stability in your own experimental conditions and normalize with &ge;2 reference genes. Full citations are listed on the <a href="{% url 'references' %}">References</a> page.</p>
+            <ul>
+                <li><i>Homo sapiens</i>: 31 qPCR-validated reference genes plus 19 most-stable transcripts from HRT Atlas (52 tissues), cross-checked with PaGenBase.</li>
+                <li><i>Mus musculus</i>: 21 qPCR-validated genes (HRT Atlas primer validation + Ho &amp; Patrizi 2021) plus 29 most-stable genes from HRT Atlas (14 tissues), cross-checked with PaGenBase.</li>
+                <li><i>Rattus norvegicus</i>: 16 literature-curated reference genes across 32 tissue/cell contexts plus 34 lowest-DPM genes from PaGenBase (development &amp; tissue).</li>
+                <li><i>Danio rerio</i>: 2 qPCR-validated genes (McCurley &amp; Callard 2008: <i>eef1a1l1</i>, <i>b2m</i>) plus 48 lowest-DPM genes from PaGenBase (development).</li>
+                <li><i>Drosophila melanogaster</i>: Top 50 lowest-DPM genes across three PaGenBase datasets (development, strain, and tissue).</li>
+                <li><i>Caenorhabditis elegans</i>: 13 meta-analysis-validated ribosomal reference genes (Tao et al. 2020) plus 37 lowest-DPM genes from PaGenBase (development).</li>
+                <li><i>Saccharomyces cerevisiae</i>: 4 qPCR-validated genes (Teste et al. 2009: <i>TAF10</i>, <i>TFC1</i>, <i>ALG9</i>, <i>UBC6</i>) plus 46 lowest-DPM genes across five PaGenBase datasets.</li>
+                <li><i>Arabidopsis thaliana</i>: 18 qPCR-validated novel genes plus <i>UBQ10</i> (Czechowski et al. 2005) and 31 lowest-CV/DPM genes from Czechowski Supplemental Table I &amp; PaGenBase.</li>
+                <li><i>Oryza sativa</i>: Top 50 lowest-CV constitutive genes (&tau; &lt; 0.5, mean FPKM &ge; 5) from Rice Expression Database v1 mapped directly to IRGSP-1.0.</li>
+                <li><i>Glycine max</i>: 2 direct PaGenBase genes plus 48 Ensembl Plants Compara orthologs (8 one-to-one, 40 one-to-many) from top stable <i>Arabidopsis</i> and rice genes.</li>
+                <li><i>Xenopus tropicalis</i>: 11 qPCR-validated candidates plus 39 lowest-CV developmental RNA-seq genes (mean &ge; 50 TPM) transferred from sister species <i>X. laevis</i> (Mughal et al. 2018).</li>
+                <li><i>Solanum lycopersicum</i>: Top 50 genome-wide RNA-seq and qPCR-validated tomato reference genes (Cheng et al. 2017) mapped directly to SL3.0.</li>
+                <li><i>Zea mays</i>: 50 Ensembl Plants Compara orthologs (46 one-to-one, 4 one-to-many) from top stable rice (RED v1) and <i>Arabidopsis</i> (Czechowski 2005) genes.</li>
+                <li><i>Litomosoides sigmodontis</i>: 50 strict one-to-one WormBase ParaSite orthologs transferred from <i>C. elegans</i> (11 from Tao et al. 2020 + 39 lowest-DPM PaGenBase genes).</li>
+            </ul>
+        </div>
+    </div>
+
 
     <div class="row">
     <div class="col-md-12">

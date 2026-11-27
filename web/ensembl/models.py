@@ -86,24 +86,28 @@ class Transcript(models.Model):
 
 class HousekeepingGene(models.Model):
     """
-    Curated reference/housekeeping genes for qPCR normalisation.
-    Sources: HRT Atlas (human/mouse), PaGenBase (invertebrates/plants),
-             Rice Expression Database (rice).
+    Curated Top-50 reference/housekeeping genes per species for qPCR normalisation,
+    100% verified against ExonSurfer's species GTF databases.
+    Sources: HRT Atlas, PaGenBase, RED v1, Czechowski 2005, Mughal 2018,
+             Cheng 2017, PMID-backed literature GMTs, and Ensembl/ParaSite 1-to-1 orthologs.
     """
-    species         = models.CharField(max_length=100, db_index=True)
-    gene_name       = models.CharField(max_length=100)
-    gene_id         = models.CharField(max_length=100, blank=True, null=True, db_index=True)
-    match_type      = models.CharField(max_length=20)   # iexact | direct | ncbi_crosswalk | unmapped
-    source          = models.CharField(max_length=100)  # HRT Atlas | PaGenBase | RED
-    source_url      = models.URLField()
-    context         = models.CharField(max_length=100)  # most_stable | multi-tissue | development ...
-    rank            = models.IntegerField(null=True)    # 1 = most stable
-    dpm             = models.FloatField(null=True)      # PaGenBase stability score
-    avg_expression  = models.FloatField(null=True)      # RED expression level
+    species          = models.CharField(max_length=100, db_index=True)
+    rank             = models.IntegerField()                           # 1..50 (1 = highest priority)
+    gene_id          = models.CharField(max_length=100, db_index=True)
+    gene_name        = models.CharField(max_length=100)
+    biotype          = models.CharField(max_length=100, blank=True, default="")
+    evidence_tier    = models.CharField(max_length=50, db_index=True)  # validated_qpcr | curated_most_stable | literature_gmt | transcriptome_screen | ortholog_1to1_* | ortholog_1tomany_*
+    n_sources        = models.IntegerField(default=1)
+    n_datasets       = models.IntegerField(default=1)
+    sources          = models.CharField(max_length=255, blank=True, default="")
+    stability_metric = models.CharField(max_length=50, blank=True, default="")
+    stability_value  = models.FloatField(null=True, blank=True)
+    mean_expression  = models.FloatField(null=True, blank=True)
+    citation         = models.CharField(max_length=500, blank=True, default="")
 
     class Meta:
         ordering = ["species", "rank", "gene_name"]
-        unique_together = [["species", "gene_name", "source", "context"]]
+        unique_together = [["species", "gene_id"]]
 
     def __str__(self):
-        return f"{self.gene_name} ({self.species})"
+        return f"#{self.rank} {self.gene_name} ({self.species}, {self.evidence_tier})"

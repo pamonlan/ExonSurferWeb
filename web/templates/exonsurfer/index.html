@@ -98,6 +98,20 @@
 
         </div>
 
+        <div class="form-check" style="margin-bottom: 0.5rem;">
+          <input class="form-check-input" type="checkbox" id="hkOnlyToggle">
+          <label class="form-check-label" for="hkOnlyToggle">
+            Show recommended housekeeping genes (Top 50)
+          </label>
+        </div>
+
+        <div id="hkInfoBox" class="alert alert-info py-2 px-3 small" style="display: none; margin-bottom: 0.75rem;">
+          <div id="hkSelectedMeta" style="display: none; margin-bottom: 4px;"></div>
+          <div>
+            <strong>MIQE note:</strong> Ranked starting candidates for qPCR normalization. Always validate expression stability (e.g., geNorm, NormFinder, BestKeeper) in your own experimental conditions and normalize with &ge;2 reference genes.
+          </div>
+        </div>
+
         <div class="form-check form-check-inline">
           <p style="padding: 1%%">
             <input class="form-check-input" type="checkbox" name="use_non_protein_coding" id="use_non_protein_coding" value="True">
@@ -160,13 +174,27 @@
   const selectSpecies = document.getElementById("selectSpecies");
   const speciesInfo = document.getElementById("speciesInfo");
   const speciesDivs = Array.from(speciesInfo.getElementsByClassName('form-group'));
+  const hkOnlyToggle = document.getElementById("hkOnlyToggle");
+  const hkInfoBox = document.getElementById("hkInfoBox");
+  const hkSelectedMeta = document.getElementById("hkSelectedMeta");
 
   const speciesApiUrls = {
     {% for key, cfg in species_config.items %}
     "{{ key }}": "/api/{{ cfg.api_url }}/",
     {% endfor %}
   };
-  const loadedSpecies = {};
+  const allGenesCache = {};
+  const hkGenesCache = {};
+
+  const TIER_LABELS = {
+    "validated_qpcr": "Validated qPCR",
+    "curated_most_stable": "Most stable (curated)",
+    "literature_gmt": "Literature curated",
+    "transcriptome_screen": "Transcriptome screen",
+    "ortholog_1to1_validated": "1:1 Ortholog (validated)",
+    "ortholog_1to1_screen": "1:1 Ortholog",
+    "ortholog_1tomany_screen": "Ortholog (1:many)"
+  };
 
   function escapeHtml(str) {
     return String(str)
@@ -176,30 +204,103 @@
       .replace(/"/g, "&quot;");
   }
 
-  function loadData(speciesKey) {
-    if (!speciesKey || loadedSpecies[speciesKey] || !speciesApiUrls[speciesKey]) {
+  function formatCitations(citStr) {
+    if (!citStr) return "";
+    return citStr.split(";").filter(Boolean).map(c => {
+      const s = c.trim();
+      if (s.startsWith("PMID:")) {
+        const id = s.slice(5);
+        return `<a href="https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(id)}/" target="_blank" rel="noopener">${escapeHtml(s)}</a>`;
+      }
+      if (s.startsWith("DOI:")) {
+        const doi = s.slice(4);
+        return `<a href="https://doi.org/${encodeURI(doi)}" target="_blank" rel="noopener">${escapeHtml(s)}</a>`;
+      }
+      if (s.startsWith("PMC:")) {
+        const pmc = s.slice(4);
+        return `<a href="https://pmc.ncbi.nlm.nih.gov/articles/${encodeURIComponent(pmc)}/" target="_blank" rel="noopener">${escapeHtml(s)}</a>`;
+      }
+      return escapeHtml(s);
+    }).join(" &middot; ");
+  }
+
+  function renderDropdown(speciesKey, data, isHk) {
+    const $dropdown = $('#' + speciesKey + '-genes-dropdown');
+    if (isHk) {
+      if (!data.length) {
+        $dropdown.html('<option selected="selected">No housekeeping genes available</option>').trigger("chosen:updated");
+        return;
+      }
+      const opts = new Array(data.length + 1);
+      opts[0] = '<option value="" selected="selected">Select a recommended housekeeping gene (Top 50)</option>';
+      for (let i = 0; i < data.length; i++) {
+        const id = escapeHtml(data[i][0]);
+        const sym = escapeHtml(data[i][1]);
+        const rank = data[i][2];
+        const tierLabel = TIER_LABELS[data[i][3]] || escapeHtml(data[i][3]);
+        opts[i + 1] = `<option value="${id}">#${rank} ${sym} (${id}) — ${tierLabel}</option>`;
+      }
+      $dropdown.html(opts.join('')).trigger("chosen:updated");
+    } else {
+      const opts = new Array(data.length + 1);
+      opts[0] = '<option value="" selected="selected">Select a gene</option>';
+      for (let i = 0; i < data.length; i++) {
+        const id = escapeHtml(data[i][0]);
+        const sym = escapeHtml(data[i][1]);
+        opts[i + 1] = `<option value="${id}">Gene symbol: ${sym} | Gene ID: ${id}</option>`;
+      }
+      $dropdown.html(opts.join('')).trigger("chosen:updated");
+    }
+  }
+
+  function updateHkMeta(speciesKey) {
+    if (!hkOnlyToggle.checked) {
+      hkSelectedMeta.style.display = 'none';
       return;
     }
-    loadedSpecies[speciesKey] = true;
-    const selector = '#' + speciesKey + '-genes-dropdown';
-    const url = speciesApiUrls[speciesKey];
-    const $dropdown = $(selector);
+    const val = $('#' + speciesKey + '-genes-dropdown').val();
+    const list = hkGenesCache[speciesKey] || [];
+    const hit = list.find(item => item[0] === val);
+    if (!hit) {
+      hkSelectedMeta.style.display = 'none';
+      return;
+    }
+    const tierLabel = TIER_LABELS[hit[3]] || escapeHtml(hit[3]);
+    const refs = formatCitations(hit[5]);
+    hkSelectedMeta.innerHTML =
+      `<strong>#${hit[2]} ${escapeHtml(hit[1])}</strong> (${escapeHtml(hit[0])}) &middot; ` +
+      `<span class="badge badge-primary">${tierLabel}</span> &middot; ` +
+      `Sources: ${escapeHtml(hit[4])}` + (refs ? ` &middot; ${refs}` : '');
+    hkSelectedMeta.style.display = 'block';
+  }
+
+  function loadData(speciesKey) {
+    if (!speciesKey || !speciesApiUrls[speciesKey]) {
+      return;
+    }
+    const isHk = hkOnlyToggle.checked;
+    hkInfoBox.style.display = isHk ? 'block' : 'none';
+    hkSelectedMeta.style.display = 'none';
+
+    const cache = isHk ? hkGenesCache : allGenesCache;
+    if (cache[speciesKey]) {
+      renderDropdown(speciesKey, cache[speciesKey], isHk);
+      return;
+    }
+
+    const $dropdown = $('#' + speciesKey + '-genes-dropdown');
+    const url = speciesApiUrls[speciesKey] + (isHk ? '?hk=1' : '');
     $dropdown.html('<option selected="selected">Loading genes...</option>').trigger("chosen:updated");
 
     $.ajax({
       url: url,
       success: function(data) {
-        const opts = new Array(data.length + 1);
-        opts[0] = '<option selected="selected">Select a gene</option>';
-        for (let i = 0; i < data.length; i++) {
-          const id = escapeHtml(data[i][0]);
-          const sym = escapeHtml(data[i][1]);
-          opts[i + 1] = `<option value="${id}">Gene symbol: ${sym} | Gene ID: ${id}</option>`;
+        cache[speciesKey] = data;
+        if (selectSpecies.value === speciesKey && hkOnlyToggle.checked === isHk) {
+          renderDropdown(speciesKey, data, isHk);
         }
-        $dropdown.html(opts.join('')).trigger("chosen:updated");
       },
       error: function() {
-        loadedSpecies[speciesKey] = false;
         console.error('Failed to fetch data from ' + url);
         $dropdown.html('<option>Error loading data</option>').trigger("chosen:updated");
       }
@@ -214,8 +315,14 @@
     loadData(selectedValue);
   });
 
+  hkOnlyToggle.addEventListener("change", function() {
+    loadData(selectSpecies.value);
+  });
+
   $(document).ready(function() {
-    $('.chosen-select').chosen();
+    $('.chosen-select').chosen().on('change', function() {
+      updateHkMeta(selectSpecies.value);
+    });
     loadData(selectSpecies.value);
   });
 </script>
